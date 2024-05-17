@@ -1,17 +1,16 @@
 <template>
   <div>
-    
     <series-header></series-header>
-    <series-page></series-page>
+    <series-tile></series-tile>
   </div>
 </template>
 <script>
 import SeriesHeader from "~/vue components/SeriesHeader.vue";
-import SeriesPage from "~/vue components/SeriesPage.vue";
+import SeriesTile from "~/vue components/SeriesTile.vue";
 
 export default {
   components: {
-    SeriesPage,
+    SeriesTile,
     SeriesHeader
   }
 }
