@@ -1,11 +1,14 @@
 <template>
-<div v-if="watchedData">
-    <div class="series-tile" v-for="item in watchedData.items">
-        {{item.original_name}}
+<div v-if="watchedData" class="series-tile__wrapper">
+    <div  v-for="item in watchedData.items">
+    <div class="series-tile">
+    {{item.original_name}}
     {{item.overview}}
     {{item.poster_path}}
     {{item.genre_ids}}
     {{item.first_air_date}}
+    </div>
+
     </div>
     {{watchedData.total_results}}
 </div>
@@ -37,8 +40,16 @@ async function droppedShowsData() {
 </script>
 <<style lang="less">
 @import "../style/variables";
+
 .series-tile {
     height: 10rem;
-    background-color: var(--light-beige);
+    box-shadow: var(--tile-box-shadow);
+    border-radius: .5rem;
+    background-color: var(--white);
+    &__wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
 };
 </style>
