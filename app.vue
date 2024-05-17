@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NuxtWelcome />
+    
     <series-header></series-header>
     <series-page></series-page>
   </div>
