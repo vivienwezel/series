@@ -1,14 +1,17 @@
 <template>
 <div v-if="watchedData" class="series-tile__wrapper">
-    <div  v-for="item in watchedData.items">
-    <div class="series-tile">
-    {{item.original_name}}
-    {{item.overview}}
-    {{item.poster_path}}
-    {{item.genre_ids}}
-    {{item.first_air_date}}
-    </div>
-
+    <div v-for="item in watchedData.items" class="series-tile">
+        <div class="series-tile__image-wrapper">
+            <div class="series-tile__image">
+                <img :src="imageUrl + item.poster_path" :alt="'Bild der Serie ' + item.original_name">
+            </div>
+        </div>
+        <div class="series-tile__info-wrapper">
+            <div class="series-tile__title">{{item.original_name}}</div>
+            <div class="series-tile__description">{{item.overview}}</div>
+            <div class="series-tile__genres">{{item.genre_ids}}</div>
+            <div class="series-tile__airdate">{{item.first_air_date}}</div>
+        </div>
     </div>
     {{watchedData.total_results}}
 </div>
@@ -19,6 +22,7 @@ import {ref, onMounted} from 'vue'
 
 const watchedData = ref(null)
 const droppedData = ref(null)
+const imageUrl = ref('https://media.themoviedb.org/t/p/w220_and_h330_face')
 
 onMounted(() => {
     watchedShowsData()
@@ -42,14 +46,30 @@ async function droppedShowsData() {
 @import "../style/variables";
 
 .series-tile {
-    height: 10rem;
+    display: flex;
     box-shadow: var(--tile-box-shadow);
     border-radius: .5rem;
     background-color: var(--white);
+    gap: 2rem;
     &__wrapper {
         display: flex;
         flex-direction: column;
         gap: 1rem;
+    }
+
+    &__info-wrapper {
+        flex-basis: 90%;
+        padding: 1rem;
+    }
+
+    &__image-wrapper {
+        flex-basis: 10%;
+    }
+
+    &__image {
+        height: 100%;
+        border-top-left-radius: .5rem;
+        border-bottom-left-radius: .5rem;
     }
 };
 </style>
