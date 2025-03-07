@@ -1,6 +1,6 @@
 export default defineEventHandler((event) => {
     const config = useRuntimeConfig(event)
-    const url = `${config.public.apiBase}/search/tv?query=monk&include_adult=false&language=en-US&page=1`;
+    const url = `${config.public.apiBase}/search/tv?query=${searchInput}&include_adult=false&language=en-US&page=1`;
     const options = {
         method: 'GET',
         headers: {

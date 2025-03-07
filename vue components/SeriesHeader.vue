@@ -1,9 +1,9 @@
 <template>
-<form action="/test">
-    <label for="search-query">Search Series:</label>
-    <input type="search" id="search-query" name="search-query">
-    <input type="submit">
-</form>
+    <form action="/test">
+        <label for="search-query">Search Series:</label>
+        <input type="search" id="search-query" name="search-query">
+        <button @click.prevent="searchSeriesData" type="submit">Search</button>
+    </form>
 
 </template>
 <script setup lang="ts">
@@ -19,6 +19,7 @@ async function searchSeriesData() {
     searchData.value = await $fetch('/api/searchData', {
         method: 'GET'
     });
+
     console.log(typeof searchData, 'huhu');
 }
 

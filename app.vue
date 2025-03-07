@@ -1,6 +1,6 @@
 <template>
   <div>
-  
+
     <series-header></series-header>
     <series-tile></series-tile>
   </div>

@@ -1,20 +1,20 @@
 <template>
-<div v-if="watchedData" class="series-tile__wrapper">
-    <div v-for="item in watchedData.items" class="series-tile">
-        <div class="series-tile__image-wrapper">
-            <div class="series-tile__image">
-                <img :src="imageUrl + item.poster_path" :alt="'Bild der Serie ' + item.original_name">
+    <div v-if="watchedData" class="series-tile__wrapper">
+        <div v-for="item in watchedData.items" class="series-tile">
+            <div class="series-tile__image-wrapper">
+                <div class="series-tile__image">
+                    <img :src="imageUrl + item.poster_path" :alt="'Bild der Serie ' + item.original_name">
+                </div>
+            </div>
+            <div class="series-tile__info-wrapper">
+                <div class="series-tile__title">{{item.original_name}}</div>
+                <div class="series-tile__description">{{item.overview}}</div>
+                <div class="series-tile__genres">{{item.genre_ids}}</div>
+                <div class="series-tile__airdate">{{item.first_air_date}}</div>
             </div>
         </div>
-        <div class="series-tile__info-wrapper">
-            <div class="series-tile__title">{{item.original_name}}</div>
-            <div class="series-tile__description">{{item.overview}}</div>
-            <div class="series-tile__genres">{{item.genre_ids}}</div>
-            <div class="series-tile__airdate">{{item.first_air_date}}</div>
-        </div>
+        {{watchedData.total_results}}
     </div>
-    {{watchedData.total_results}}
-</div>
 </template>
 
 <script setup lang="ts">
@@ -42,7 +42,7 @@ async function droppedShowsData() {
     });
 }
 </script>
-<<style lang="less">
+<style lang="less">
 @import "../style/variables";
 
 .series-tile {
