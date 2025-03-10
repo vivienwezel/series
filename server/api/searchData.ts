@@ -1,6 +1,11 @@
+import {getQuery} from 'h3'
+
 export default defineEventHandler((event) => {
     const config = useRuntimeConfig(event)
-    const url = `${config.public.apiBase}/search/tv?query=${searchInput}&include_adult=false&language=en-US&page=1`;
+    const query = getQuery(event)
+    const searchInput = query.query || ''
+    const searchLanguage = query.language || 'en'
+    const url = `${config.public.apiBase}/search/movie?query=${searchInput}&include_adult=false&language=${searchLanguage}&page=1`;
     const options = {
         method: 'GET',
         headers: {
