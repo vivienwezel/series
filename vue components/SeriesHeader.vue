@@ -32,6 +32,7 @@
       </dialog>
       <p>
         <button id="showDialog">Search</button>
+        <img alt="search icon" src="../icons/search.svg">
       </p>
     </div>
   </div>
@@ -74,6 +75,7 @@ async function searchSeriesData() {
     }
   });
 }
+
 
 </script>
 
