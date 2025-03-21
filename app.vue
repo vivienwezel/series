@@ -6,7 +6,7 @@
   </div>
 </template>
 <script>
-import SeriesHeader from "~/vue components/SeriesHeader.vue";
+import SeriesHeader from "~/vue components/header/SeriesHeader.vue";
 import SeriesTile from "~/vue components/SeriesTile.vue";
 
 export default {
