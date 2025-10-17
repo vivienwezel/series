@@ -16,8 +16,8 @@
         <h2>Shows</h2>
         <div v-for="result in searchTvData.results.slice(0, 5)" :key="result.id"
              class="searchbox__search-result-item">
-          <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path">
-
+          <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
+               class="searchbox__search-result-item-image">
           <p class="searchbox__search-results-title">
             {{ result.name }}
           </p>
@@ -48,10 +48,11 @@
       No results found.
     </div>
   </dialog>
-  <p>
-    <button id="showDialog">Search</button>
-    <img alt="search icon" src="../../icons/search.svg">
-  </p>
+
+  <div class="searchbox__search-button-wrapper">
+    <button id="showDialog" class="searchbox__search-button">Search</button>
+  </div>
+
 </template>
 
 <script lang="ts">
@@ -87,7 +88,6 @@ export default defineComponent({
 
     closeButton.addEventListener("click", () => {
       this.searchInput.value = ''
-
     });
   },
 
@@ -145,6 +145,23 @@ export default defineComponent({
     &-title {
       align-content: center;
     }
+  }
+
+  &__search-button {
+    background-color: var(--yellow);
+    border-radius: .5rem;
+    border: none;
+    box-sizing: border-box;
+    color: var(--dark-blue);
+    column-gap: 1rem;
+    cursor: pointer;
+    display: flex;
+    font-size: 100%;
+    font-weight: 700;
+    margin: 0;
+    outline: 2px solid transparent;
+    padding: 1rem 1.5rem;
+    text-align: center;
   }
 
   &__search-result-item {

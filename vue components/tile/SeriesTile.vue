@@ -43,13 +43,13 @@ async function droppedShowsData() {
 }
 </script>
 <style lang="less">
-@import "../style/variables";
+@import "../../style/variables";
 
 .series-tile {
   display: flex;
   box-shadow: var(--tile-box-shadow);
   border-radius: .5rem;
-  background-color: var(--baby-powder);
+  background-color: var(--grey);
   gap: 2rem;
 
   &__wrapper {

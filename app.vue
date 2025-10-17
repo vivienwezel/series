@@ -1,18 +1,10 @@
 <template>
   <div>
-
     <series-header></series-header>
-    <series-tile></series-tile>
+    <NuxtPage />
   </div>
 </template>
-<script>
-import SeriesHeader from "~/vue components/header/SeriesHeader.vue";
-import SeriesTile from "~/vue components/SeriesTile.vue";
 
-export default {
-  components: {
-    SeriesTile,
-    SeriesHeader
-  }
-}
+<script setup>
+import SeriesHeader from "~/vue components/header/SeriesHeader.vue";
 </script>
