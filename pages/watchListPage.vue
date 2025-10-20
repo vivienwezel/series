@@ -1,12 +1,14 @@
 <template>
   <div class="watchlist-page">
-    <h1>My Watchlist</h1>
-    <watch-list></watch-list>
+    <h1>ToDo Watchlist</h1>
+    <series-tile :watch="watch"></series-tile>
   </div>
 </template>
 
 <script setup>
-import WatchList from "~/vue components/lists/watchedList.vue";
+import SeriesTile from "~/vue components/tile/SeriesTile.vue";
+
+const watch = ref(true)
 </script>
 
 <style scoped>

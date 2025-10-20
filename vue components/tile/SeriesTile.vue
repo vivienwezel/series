@@ -1,24 +1,44 @@
 <template>
-  <div v-if="watchedData" class="series-tile__wrapper">
-    <div v-for="item in watchedData.items" class="series-tile">
-      <div class="series-tile__image-wrapper">
-        <div class="series-tile__image">
-          <img :alt="'Bild der Serie ' + item.original_name" :src="imageUrl + item.poster_path">
+  <div v-show="watched">
+    <div v-if="watchedData" class="series-tile__wrapper">
+      <div v-for="item in watchedData.items" class="series-tile">
+        <div class="series-tile__image-wrapper">
+          <div class="series-tile__image">
+            <img :alt="'Bild der Serie ' + item.original_name" :src="imageUrl + item.poster_path">
+          </div>
+        </div>
+        <div class="series-tile__info-wrapper">
+          <div class="series-tile__title">{{ item.original_name }}</div>
+          <div class="series-tile__description">{{ item.overview }}</div>
+          <div class="series-tile__genres">{{ item.genre_ids }}</div>
+          <div class="series-tile__airdate">{{ item.first_air_date }}</div>
         </div>
       </div>
-      <div class="series-tile__info-wrapper">
-        <div class="series-tile__title">{{ item.original_name }}</div>
-        <div class="series-tile__description">{{ item.overview }}</div>
-        <div class="series-tile__genres">{{ item.genre_ids }}</div>
-        <div class="series-tile__airdate">{{ item.first_air_date }}</div>
-      </div>
+      {{ watchedData.total_results }}
     </div>
-    {{ watchedData.total_results }}
+  </div>
+
+  <div v-show="watch">
+    <div v-if="droppedData">
+      {{ droppedData }}
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue'
+
+defineProps({
+  watched: {
+    type: Boolean,
+    default: false
+  },
+
+  watch: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const watchedData = ref(null)
 const droppedData = ref(null)
@@ -40,6 +60,8 @@ async function droppedShowsData() {
   droppedData.value = await $fetch('/api/droppedShows', {
     method: 'GET'
   });
+
+  console.log('dropped');
 }
 </script>
 <style lang="less">
