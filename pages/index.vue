@@ -2,7 +2,6 @@
   <div class="home-page">
     <h1>My Series Tracker</h1>
     <TMDBAuthButton/>
-    hello
   </div>
 </template>
 
