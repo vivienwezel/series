@@ -5,12 +5,12 @@ export default defineEventHandler((event) => {
     const query = getQuery(event)
     const searchInput = query.query || ''
     const searchLanguage = query.language || 'en'
-    const url = `${config.public.apiBase}/search/tv?query=${searchInput}&include_adult=false&language=${searchLanguage}&page=1`;
+    const url = `${config.public.apiBaseV3}/search/tv?query=${searchInput}&include_adult=true&language=${searchLanguage}&page=1`;
     const options = {
         method: 'GET',
         headers: {
             accept: 'application/json',
-            Authorization: `Bearer ${config.apiSecret}`
+            Authorization: `Bearer ${config.apiSecretReadOnly}`
         }
     };
 

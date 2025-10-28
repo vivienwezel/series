@@ -1,7 +1,7 @@
 <template>
-  <div v-show="watched">
-    <div v-if="watchedData" class="series-tile__wrapper">
-      <div v-for="result in watchedData.results" class="series-tile">
+  <div v-show="completed">
+    <div v-if="completedData" class="series-tile__wrapper">
+      <div v-for="result in completedData.results" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
             <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
@@ -14,7 +14,7 @@
           <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
       </div>
-      {{ watchedData.total_results }}
+      {{ completedData.total_results }}
     </div>
   </div>
 
@@ -55,13 +55,33 @@
       {{ watchListData.total_results }}
     </div>
   </div>
+
+  <div v-show="ongoing">
+    <div v-if="ongoingData" class="series-tile__wrapper">
+      <div v-for="result in ongoingData.results" class="series-tile">
+        <div class="series-tile__image-wrapper">
+          <div class="series-tile__image">
+            <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
+                 class="series-tile__img">
+          </div>
+        </div>
+        <div class="series-tile__info-wrapper">
+          <div class="series-tile__title">{{ result.original_name }}</div>
+          <div class="series-tile__description">{{ result.overview }}</div>
+          <div class="series-tile__airdate">{{ result.first_air_date }}</div>
+        </div>
+      </div>
+      {{ ongoingData.total_results }}
+    </div>
+  </div>
+
 </template>
 
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue'
 
 defineProps({
-  watched: {
+  completed: {
     type: Boolean,
     default: false
   },
@@ -74,31 +94,40 @@ defineProps({
   dropped: {
     type: Boolean,
     default: false
+  },
+
+  ongoing: {
+    type: Boolean,
+    default: false
   }
 })
 
-const watchedData = ref(null)
+const completedData = ref(null)
 const droppedData = ref(null)
 const watchListData = ref(null)
+const ongoingData = ref(null)
 const imageUrl = ref('https://media.themoviedb.org/t/p/w220_and_h330_face')
 
 onMounted(() => {
-  watchedShowsData()
+  completedShowsData()
   droppedShowsData()
   watchListShowsData()
-  // receiveWritingPermission.createTokenRequest()
+  ongoingShowsData()
 })
 
-async function watchedShowsData() {
-  watchedData.value = await $fetch('/api/watchedShows', {
+async function completedShowsData() {
+  completedData.value = await $fetch('/api/completedShows', {
     method: 'GET'
   });
-  console.log(watchedData.value, 'watched Data')
+  console.log(completedData.value, 'completed Data')
 }
 
-// async function createTokenRequest() {
-//
-// }
+async function ongoingShowsData() {
+  ongoingData.value = await $fetch('/api/inProgressShows', {
+    method: 'GET'
+  });
+  console.log(ongoingData.value, 'ongoing Data')
+}
 
 async function watchListShowsData() {
   watchListData.value = await $fetch('/api/watchListShows', {
@@ -121,7 +150,7 @@ async function droppedShowsData() {
   height: 10rem;
   box-shadow: var(--tile-box-shadow);
   border-radius: .5rem;
-  background-color: var(--grey);
+  border: 1px solid var(--grey);
   gap: 2rem;
 
   &__title {
@@ -154,6 +183,4 @@ async function droppedShowsData() {
     border-bottom-left-radius: .5rem;
   }
 }
-
-;
 </style>

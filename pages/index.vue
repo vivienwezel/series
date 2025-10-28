@@ -1,12 +1,15 @@
 <template>
   <div class="home-page">
-    <h1>My Series Tracker</h1>
-    <TMDBAuthButton/>
+    <h2>List Summary:</h2>
+    <div class="home-page__auth">
+      <h3>Connect to TMDB to enable writing access for private lists:</h3>
+      <TMDBAuthButton/>
+    </div>
   </div>
 </template>
 
 <script setup>
-import TMDBAuthButton from "~/components/TMDBAuthButton.vue";
+import TMDBAuthButton from "~/vue components/buttons/TMDBAuthButton.vue";
 </script>
 
 <style scoped>
@@ -14,5 +17,11 @@ import TMDBAuthButton from "~/components/TMDBAuthButton.vue";
   padding: 1.25rem;
   max-width: 75rem;
   margin: 0 auto;
+}
+
+.home-page__auth {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
 }
 </style>

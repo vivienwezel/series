@@ -3,7 +3,8 @@
     <div class="series-header__navigation">
       <NuxtLink class="series-header__navigation-link" to="/">Home</NuxtLink>
       <NuxtLink class="series-header__navigation-link" to="/watchListPage">Watchlist</NuxtLink>
-      <NuxtLink class="series-header__navigation-link" to="/watchedListPage">Finished</NuxtLink>
+      <NuxtLink class="series-header__navigation-link" to="/inProgressShowsPage">In Progress</NuxtLink>
+      <NuxtLink class="series-header__navigation-link" to="/completedShowsPage">Completed</NuxtLink>
       <NuxtLink class="series-header__navigation-link" to="/droppedShowsPage">Dropped</NuxtLink>
     </div>
     <div class="series-header__search">

@@ -1,7 +1,7 @@
 <template>
-  <div class="watched-list-page">
+  <div class="completed-list-page">
     <h1>Done watching</h1>
-    <series-tile :watched="watched"></series-tile>
+    <series-tile :completed="completed"></series-tile>
   </div>
 </template>
 
@@ -9,11 +9,11 @@
 import SeriesTile from "~/vue components/tile/SeriesTile.vue";
 import {ref} from "vue";
 
-const watched = ref(true)
+const completed = ref(true)
 </script>
 
 <style scoped>
-.watched-list-page {
+.completed-list-page {
   padding: 1.25rem;
   max-width: 75rem;
   margin: 0 auto;

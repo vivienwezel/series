@@ -1,7 +1,7 @@
 <template>
-  <div class="dropped-shows-page">
-    <h1>wtf</h1>
-    <series-tile :dropped="dropped"></series-tile>
+  <div class="ongoing-shows-page">
+    <h1>Currently watching</h1>
+    <series-tile :ongoing="ongoing"></series-tile>
   </div>
 </template>
 
@@ -9,11 +9,11 @@
 import SeriesTile from "~/vue components/tile/SeriesTile.vue";
 import {ref} from "vue";
 
-const dropped = ref(true)
+const ongoing = ref(true)
 </script>
 
 <style scoped>
-.dropped-shows-page {
+.ongoing-shows-page {
   padding: 1.25rem;
   max-width: 75rem;
   margin: 0 auto;

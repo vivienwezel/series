@@ -1,6 +1,6 @@
 export default defineEventHandler((event) => {
     const config = useRuntimeConfig(event)
-    const url = `${config.public.apiBase}/list/${config.public.showIds.dropped}`;
+    const url = `${config.public.apiBase}/list/${config.public.showIds.completed}`;
     const options = {
         method: 'GET',
         headers: {
