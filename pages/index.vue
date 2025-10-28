@@ -1,11 +1,13 @@
 <template>
   <div class="home-page">
     <h1>My Series Tracker</h1>
+    <TMDBAuthButton/>
     hello
   </div>
 </template>
 
 <script setup>
+import TMDBAuthButton from "~/components/TMDBAuthButton.vue";
 </script>
 
 <style scoped>

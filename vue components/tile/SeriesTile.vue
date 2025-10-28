@@ -1,26 +1,58 @@
 <template>
   <div v-show="watched">
     <div v-if="watchedData" class="series-tile__wrapper">
-      <div v-for="item in watchedData.items" class="series-tile">
+      <div v-for="result in watchedData.results" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
-            <img :alt="'Bild der Serie ' + item.original_name" :src="imageUrl + item.poster_path">
+            <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
+                 class="series-tile__img">
           </div>
         </div>
         <div class="series-tile__info-wrapper">
-          <div class="series-tile__title">{{ item.original_name }}</div>
-          <div class="series-tile__description">{{ item.overview }}</div>
-          <div class="series-tile__genres">{{ item.genre_ids }}</div>
-          <div class="series-tile__airdate">{{ item.first_air_date }}</div>
+          <div class="series-tile__title">{{ result.original_name }}</div>
+          <div class="series-tile__description">{{ result.overview }}</div>
+          <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
       </div>
       {{ watchedData.total_results }}
     </div>
   </div>
 
+  <div v-show="dropped">
+    <div v-if="droppedData" class="series-tile__wrapper">
+      <div v-for="result in droppedData.results" class="series-tile">
+        <div class="series-tile__image-wrapper">
+          <div class="series-tile__image">
+            <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
+                 class="series-tile__img">
+          </div>
+        </div>
+        <div class="series-tile__info-wrapper">
+          <div class="series-tile__title">{{ result.original_name }}</div>
+          <div class="series-tile__description">{{ result.overview }}</div>
+          <div class="series-tile__airdate">{{ result.first_air_date }}</div>
+        </div>
+      </div>
+      {{ droppedData.total_results }}
+    </div>
+  </div>
+
   <div v-show="watch">
-    <div v-if="droppedData">
-      {{ droppedData }}
+    <div v-if="watchListData" class="series-tile__wrapper">
+      <div v-for="result in watchListData.results" class="series-tile">
+        <div class="series-tile__image-wrapper">
+          <div class="series-tile__image">
+            <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
+                 class="series-tile__img">
+          </div>
+        </div>
+        <div class="series-tile__info-wrapper">
+          <div class="series-tile__title">{{ result.original_name }}</div>
+          <div class="series-tile__description">{{ result.overview }}</div>
+          <div class="series-tile__airdate">{{ result.first_air_date }}</div>
+        </div>
+      </div>
+      {{ watchListData.total_results }}
     </div>
   </div>
 </template>
@@ -37,42 +69,64 @@ defineProps({
   watch: {
     type: Boolean,
     default: false
+  },
+
+  dropped: {
+    type: Boolean,
+    default: false
   }
 })
 
 const watchedData = ref(null)
 const droppedData = ref(null)
+const watchListData = ref(null)
 const imageUrl = ref('https://media.themoviedb.org/t/p/w220_and_h330_face')
 
 onMounted(() => {
   watchedShowsData()
   droppedShowsData()
+  watchListShowsData()
+  // receiveWritingPermission.createTokenRequest()
 })
 
 async function watchedShowsData() {
   watchedData.value = await $fetch('/api/watchedShows', {
     method: 'GET'
   });
-  console.log(typeof watchedData, 'huhu');
+  console.log(watchedData.value, 'watched Data')
+}
+
+// async function createTokenRequest() {
+//
+// }
+
+async function watchListShowsData() {
+  watchListData.value = await $fetch('/api/watchListShows', {
+    method: 'GET'
+  });
 }
 
 async function droppedShowsData() {
   droppedData.value = await $fetch('/api/droppedShows', {
     method: 'GET'
   });
-
-  console.log('dropped');
 }
+
 </script>
 <style lang="less">
 @import "../../style/variables";
 
 .series-tile {
   display: flex;
+  height: 10rem;
   box-shadow: var(--tile-box-shadow);
   border-radius: .5rem;
   background-color: var(--grey);
   gap: 2rem;
+
+  &__title {
+    font-weight: bold;
+  }
 
   &__wrapper {
     display: flex;
@@ -90,7 +144,12 @@ async function droppedShowsData() {
   }
 
   &__image {
-    height: 100%;
+    border-top-left-radius: .5rem;
+    border-bottom-left-radius: .5rem;
+  }
+
+  &__img {
+    height: 10rem;
     border-top-left-radius: .5rem;
     border-bottom-left-radius: .5rem;
   }
