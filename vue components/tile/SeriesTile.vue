@@ -141,6 +141,14 @@ async function droppedShowsData() {
   });
 }
 
+// Expose methods so parent can trigger refresh
+defineExpose({
+  refreshWatchList: watchListShowsData,
+  refreshCompleted: completedShowsData,
+  refreshDropped: droppedShowsData,
+  refreshOngoing: ongoingShowsData
+})
+
 </script>
 <style lang="less">
 @import "../../style/variables";

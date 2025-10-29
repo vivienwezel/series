@@ -3,10 +3,10 @@
     <h1>Plan To Watch</h1>
 
     <div class="watchlist-page__search-section">
-      <TvShowSearch/>
+      <TvShowSearch @item-added="handleItemAdded"/>
     </div>
 
-    <series-tile :watch="watch"></series-tile>
+    <series-tile ref="seriesTileRef" :watch="watch"></series-tile>
   </div>
 </template>
 
@@ -15,6 +15,14 @@ import SeriesTile from "~/vue components/tile/SeriesTile.vue";
 import TvShowSearch from "~/vue components/search/TvShowSearch.vue";
 
 const watch = ref(true)
+const seriesTileRef = ref(null)
+
+const handleItemAdded = () => {
+  // Refresh the watchlist when a new item is added
+  if (seriesTileRef.value) {
+    seriesTileRef.value.refreshWatchList()
+  }
+}
 </script>
 
 <style scoped>

@@ -60,9 +60,23 @@
                 {{ new Date(result.first_air_date).getFullYear() }}
               </p>
             </div>
-            <button class="addToList" type="button" @click="addToWatchList(result.id)">
-              <img alt="Add to watchlist" height="20" src="/icons/add.svg" width="20">
-            </button>
+            <div class="tv-show-search__buttons">
+              <button class="tv-show-search__add-to-watchlist" type="button" @click="addToList(result.id, 'watchlist')">
+                <Icon name="bookmark"></Icon>
+              </button>
+              <button class="tv-show-search__add-to-ongoing-list" type="button"
+                      @click="addToList(result.id, 'inProgress')">
+                <Icon name="play_circle"></Icon>
+              </button>
+              <button class="tv-show-search__add-to-completed-list" type="button"
+                      @click="addToList(result.id, 'completed')">
+                <Icon name="check_circle"></Icon>
+              </button>
+              <button class="tv-show-search__add-to-dropped-list" type="button"
+                      @click="addToList(result.id, 'dropped')">
+                <Icon name="cancel"></Icon>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -98,9 +112,14 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
+import Icon from "~/vue components/icons/Icon.vue";
 
 export default defineComponent({
   name: "TvShowSearch",
+  components: {
+    Icon
+  },
+  emits: ['item-added'],
   data() {
     return {
       searchInput: '',
@@ -137,25 +156,34 @@ export default defineComponent({
   },
 
   methods: {
-    async addToWatchList(result) {
-      const id = result
-      const mediaType = 'tv'
-      
+    async addToList(mediaId, listType) {
+      const accessToken = localStorage.getItem('tmdb_access_token');
+
+      if (!accessToken) {
+        console.error('No access token found. Please authenticate first.');
+        return;
+      }
+
       try {
         const response = await $fetch('/api/addItemsToList', {
           method: 'POST',
+          headers: {
+            'x-access-token': accessToken
+          },
           body: {
+            listType,
             items: [
               {
-                media_type: mediaType,
-                media_id: id
+                media_type: 'tv',
+                media_id: mediaId
               }
             ]
           }
         });
-        console.log('Successfully added to watchlist:', response);
+        console.log(`Successfully added to ${listType}:`, response);
+        this.$emit('item-added');
       } catch (error) {
-        console.error('Error adding to watchlist:', error);
+        console.error(`Error adding to ${listType}:`, error);
       }
     },
 
@@ -247,6 +275,28 @@ export default defineComponent({
       &:hover {
         opacity: 0.9;
       }
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 0.5rem;
+
+    button {
+      display: flex;
+      background: var(--grey, #fff);
+      border: 1px solid var(--border-color, #ccc);
+      border-radius: .5rem;
+      height: 3rem;
+      width: 2rem;
+
+      :hover {
+        cursor: pointer;
+      }
+    }
+
+    :deep(svg path:not([fill="none"])) {
+      fill: var(--blue);
     }
   }
 

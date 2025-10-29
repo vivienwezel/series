@@ -1,11 +1,26 @@
 <template>
   <div class="series-header__wrapper">
     <div class="series-header__navigation">
-      <NuxtLink class="series-header__navigation-link" to="/">Home</NuxtLink>
-      <NuxtLink class="series-header__navigation-link" to="/watchListPage">Watchlist</NuxtLink>
-      <NuxtLink class="series-header__navigation-link" to="/inProgressShowsPage">In Progress</NuxtLink>
-      <NuxtLink class="series-header__navigation-link" to="/completedShowsPage">Completed</NuxtLink>
-      <NuxtLink class="series-header__navigation-link" to="/droppedShowsPage">Dropped</NuxtLink>
+      <NuxtLink class="series-header__navigation-link" to="/">
+        <Icon name="home" />
+        Home
+      </NuxtLink>
+      <NuxtLink class="series-header__navigation-link" to="/watchListPage">
+        <Icon name="bookmark" />
+        Watchlist
+      </NuxtLink>
+      <NuxtLink class="series-header__navigation-link" to="/inProgressShowsPage">
+        <Icon name="play_circle" />
+        In Progress
+      </NuxtLink>
+      <NuxtLink class="series-header__navigation-link" to="/completedShowsPage">
+        <Icon name="check_circle" />
+        Completed
+      </NuxtLink>
+      <NuxtLink class="series-header__navigation-link" to="/droppedShowsPage">
+        <Icon name="cancel" />
+        Dropped
+      </NuxtLink>
     </div>
     <div class="series-header__search">
       <searchbox></searchbox>
@@ -14,6 +29,7 @@
 </template>
 <script lang="ts" setup>
 import Searchbox from "~/vue components/search/searchbox.vue";
+import Icon from "~/vue components/icons/Icon.vue";
 </script>
 
 <style lang="less">
@@ -33,15 +49,28 @@ import Searchbox from "~/vue components/search/searchbox.vue";
 
   &__navigation {
     display: flex;
-    gap: 1rem;
+    gap: .5rem;
 
     &-link {
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
       color: var(--grey);
       text-decoration: none;
+      border-right: 2px solid var(--grey);
 
       &:hover {
         color: var(--grey);
-        font-weight: bold;
+        text-shadow: 0.5px 0 0 currentColor, -0.5px 0 0 currentColor;
+      }
+
+      svg {
+        margin-right: 0.5rem;
+        fill: var(--grey);
+      }
+
+      &:hover svg {
+        fill: white;
       }
     }
   }
