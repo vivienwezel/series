@@ -10,8 +10,8 @@
         </div>
         <div class="series-tile__info-wrapper">
           <div class="series-tile__title">{{ result.original_name }}</div>
+          <div>{{ result.details?.number_of_seasons }} Seasons</div>
           <div class="series-tile__description">{{ result.overview }}</div>
-          <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
         <button @click="removeItemFromList('completed', result.id)">x</button>
       </div>
@@ -30,8 +30,6 @@
         </div>
         <div class="series-tile__info-wrapper">
           <div class="series-tile__title">{{ result.original_name }}</div>
-          <div class="series-tile__description">{{ result.overview }}</div>
-          <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
         <button @click="removeItemFromList('dropped', result.id)">x</button>
       </div>
@@ -50,8 +48,8 @@
         </div>
         <div class="series-tile__info-wrapper">
           <div class="series-tile__title">{{ result.original_name }}</div>
+          <div>{{ result.details?.number_of_seasons }} Seasons</div>
           <div class="series-tile__description">{{ result.overview }}</div>
-          <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
         <button @click="removeItemFromList('watchlist', result.id)">x</button>
       </div>
@@ -70,8 +68,8 @@
         </div>
         <div class="series-tile__info-wrapper">
           <div class="series-tile__title">{{ result.original_name }}</div>
+          <div>{{ result.details?.number_of_seasons }} Seasons</div>
           <div class="series-tile__description">{{ result.overview }}</div>
-          <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
         <button class="series-tile__remove-button" @click="removeItemFromList('inProgress', result.id)">
           <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
@@ -169,30 +167,59 @@ async function removeItemFromList(listType, mediaId) {
   }
 }
 
+async function enrichWithDetails(listData) {
+  if (!listData || !listData.results) return listData;
+
+  // Fetch details for all items in parallel
+  const detailsPromises = listData.results.map(item =>
+      $fetch('/api/fetchDetails/tvSeriesDetails', {
+        method: 'GET',
+        query: {id: item.id}
+      }).catch(err => {
+        console.error(`Error fetching details for ${item.id}:`, err);
+        return null; // Return null on error to avoid breaking the entire list
+      })
+  );
+
+  const details = await Promise.all(detailsPromises);
+
+  // Merge details into original items
+  listData.results = listData.results.map((item, index) => ({
+    ...item,
+    details: details[index]
+  }));
+
+  return listData;
+}
+
 async function completedShowsData() {
-  completedData.value = await $fetch('/api/fetchLists/completedShows', {
+  const data = await $fetch('/api/fetchLists/completedShows', {
     method: 'GET'
   });
+  completedData.value = await enrichWithDetails(data);
   console.log(completedData.value, 'completed Data')
 }
 
 async function inProgressShowsData() {
-  inProgressData.value = await $fetch('/api/fetchLists/inProgressShows', {
+  const data = await $fetch('/api/fetchLists/inProgressShows', {
     method: 'GET'
   });
+  inProgressData.value = await enrichWithDetails(data);
   console.log(inProgressData.value, 'inProgress Data')
 }
 
 async function watchListShowsData() {
-  watchListData.value = await $fetch('/api/fetchLists/watchListShows', {
+  const data = await $fetch('/api/fetchLists/watchListShows', {
     method: 'GET'
   });
+  watchListData.value = await enrichWithDetails(data);
 }
 
 async function droppedShowsData() {
-  droppedData.value = await $fetch('/api/fetchLists/droppedShows', {
+  const data = await $fetch('/api/fetchLists/droppedShows', {
     method: 'GET'
   });
+  droppedData.value = await enrichWithDetails(data);
 }
 
 // Expose methods so parent can trigger refresh
