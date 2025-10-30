@@ -165,7 +165,7 @@ export default defineComponent({
       }
 
       try {
-        const response = await $fetch('/api/addItemsToList', {
+        const response = await $fetch('/api/listActions/addItemsToList', {
           method: 'POST',
           headers: {
             'x-access-token': accessToken
@@ -194,7 +194,7 @@ export default defineComponent({
 
       try {
         this.currentPage = 1; // Reset to first page on new search
-        this.searchResults = await $fetch('/api/searchTvData', {
+        this.searchResults = await $fetch('/api/fetchSearch/searchTvData', {
           method: 'GET',
           params: {
             query: this.searchInput,

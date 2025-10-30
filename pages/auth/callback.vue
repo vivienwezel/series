@@ -47,7 +47,7 @@ onMounted(async () => {
 
   try {
     // Exchange the request token for an access token
-    const response = await $fetch('/api/createAccessToken', {
+    const response = await $fetch('/api/auth/createAccessToken', {
       method: 'POST',
       body: {
         request_token: requestToken
@@ -58,12 +58,12 @@ onMounted(async () => {
       // Store the access token (you can use localStorage, cookies, or a store)
       localStorage.setItem('tmdb_access_token', response.access_token)
       localStorage.setItem('tmdb_account_id', response.account_id)
-      
+
       // Clean up the pending request token
       localStorage.removeItem('tmdb_pending_request_token')
-      
+
       success.value = true
-      
+
       // Redirect to home after 2 seconds
       setTimeout(() => {
         router.push('/')

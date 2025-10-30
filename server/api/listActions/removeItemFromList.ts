@@ -1,7 +1,7 @@
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig(event)
     const body = await readBody(event)
-    
+
     // Get access token from custom header
     const accessToken = getHeader(event, 'x-access-token');
 
@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
     }
 
     // Extract listType and validate
-    const { listType, items } = body;
-    
+    const {listType, items} = body;
+
     if (!listType || !config.public.showIds[listType]) {
         throw createError({
             statusCode: 400,
@@ -25,16 +25,19 @@ export default defineEventHandler(async (event) => {
     // Use the appropriate list ID based on listType
     const listId = config.public.showIds[listType];
     const url = `${config.public.apiBase}/list/${listId}/items`;
+    console.log(listId, url, 'huhu')
 
     const options = {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
             Authorization: `Bearer ${accessToken}`
         },
-        body: JSON.stringify({ items })
+        body: JSON.stringify({items})
     };
+
+    console.log(options, 'options')
 
     return fetch(url, options)
         .then(res => res.json())

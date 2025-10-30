@@ -95,7 +95,7 @@ export default defineComponent({
 
 
     async searchSeriesData() {
-      this.searchTvData = await $fetch('/api/searchTvData', {
+      this.searchTvData = await $fetch('/api/fetchSearch/searchTvData', {
         method: 'GET',
         params: {
           query: this.searchInput,
@@ -105,7 +105,7 @@ export default defineComponent({
     },
 
     async searchMoviesData() {
-      this.searchMovieData = await $fetch('/api/searchMovieData', {
+      this.searchMovieData = await $fetch('/api/fetchSearch/searchMovieData', {
         method: 'GET',
         params: {
           query: this.searchInput,

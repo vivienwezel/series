@@ -33,7 +33,7 @@ const startAuthentication = async () => {
 
   try {
     // Step 1: Get request token from your API
-    const response = await $fetch('/api/createRequestToken', {
+    const response = await $fetch('/api/auth/createRequestToken', {
       method: 'POST',
       body: {
         redirect_to: `${window.location.origin}/auth/callback`

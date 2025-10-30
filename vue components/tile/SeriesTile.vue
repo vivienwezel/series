@@ -13,6 +13,7 @@
           <div class="series-tile__description">{{ result.overview }}</div>
           <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
+        <button @click="removeItemFromList('completed', result.id)">x</button>
       </div>
       {{ completedData.total_results }}
     </div>
@@ -32,6 +33,7 @@
           <div class="series-tile__description">{{ result.overview }}</div>
           <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
+        <button @click="removeItemFromList('dropped', result.id)">x</button>
       </div>
       {{ droppedData.total_results }}
     </div>
@@ -51,14 +53,15 @@
           <div class="series-tile__description">{{ result.overview }}</div>
           <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
+        <button @click="removeItemFromList('watchlist', result.id)">x</button>
       </div>
       {{ watchListData.total_results }}
     </div>
   </div>
 
-  <div v-show="ongoing">
-    <div v-if="ongoingData" class="series-tile__wrapper">
-      <div v-for="result in ongoingData.results" class="series-tile">
+  <div v-show="inProgress">
+    <div v-if="inProgressData" class="series-tile__wrapper">
+      <div v-for="result in inProgressData.results" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
             <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
@@ -70,8 +73,11 @@
           <div class="series-tile__description">{{ result.overview }}</div>
           <div class="series-tile__airdate">{{ result.first_air_date }}</div>
         </div>
+        <button class="series-tile__remove-button" @click="removeItemFromList('inProgress', result.id)">
+          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+        </button>
       </div>
-      {{ ongoingData.total_results }}
+      {{ inProgressData.total_results }}
     </div>
   </div>
 
@@ -79,6 +85,7 @@
 
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue'
+import Icon from '~/vue components/icons/Icon.vue'
 
 defineProps({
   completed: {
@@ -96,7 +103,7 @@ defineProps({
     default: false
   },
 
-  ongoing: {
+  inProgress: {
     type: Boolean,
     default: false
   }
@@ -105,38 +112,85 @@ defineProps({
 const completedData = ref(null)
 const droppedData = ref(null)
 const watchListData = ref(null)
-const ongoingData = ref(null)
+const inProgressData = ref(null)
 const imageUrl = ref('https://media.themoviedb.org/t/p/w220_and_h330_face')
 
 onMounted(() => {
   completedShowsData()
   droppedShowsData()
   watchListShowsData()
-  ongoingShowsData()
+  inProgressShowsData()
 })
 
+
+async function removeItemFromList(listType, mediaId) {
+  const accessToken = localStorage.getItem('tmdb_access_token');
+
+  if (!accessToken) {
+    console.error('No access token found. Please authenticate first.');
+    return;
+  }
+
+  try {
+    const response = await $fetch('/api/listActions/removeItemFromList', {
+      method: 'POST',
+      headers: {
+        'x-access-token': accessToken
+      },
+      body: {
+        listType,
+        items: [
+          {
+            media_type: 'tv',
+            media_id: mediaId
+          }
+        ]
+      }
+    });
+    console.log(`Successfully removed from ${listType}:`, response);
+
+    // Refresh the appropriate list after successful removal
+    switch (listType) {
+      case 'watchlist':
+        await watchListShowsData();
+        break;
+      case 'completed':
+        await completedShowsData();
+        break;
+      case 'dropped':
+        await droppedShowsData();
+        break;
+      case 'inProgress':
+        await inProgressShowsData();
+        break;
+    }
+  } catch (error) {
+    console.error(`Error removing from ${listType}:`, error);
+  }
+}
+
 async function completedShowsData() {
-  completedData.value = await $fetch('/api/completedShows', {
+  completedData.value = await $fetch('/api/fetchLists/completedShows', {
     method: 'GET'
   });
   console.log(completedData.value, 'completed Data')
 }
 
-async function ongoingShowsData() {
-  ongoingData.value = await $fetch('/api/inProgressShows', {
+async function inProgressShowsData() {
+  inProgressData.value = await $fetch('/api/fetchLists/inProgressShows', {
     method: 'GET'
   });
-  console.log(ongoingData.value, 'ongoing Data')
+  console.log(inProgressData.value, 'inProgress Data')
 }
 
 async function watchListShowsData() {
-  watchListData.value = await $fetch('/api/watchListShows', {
+  watchListData.value = await $fetch('/api/fetchLists/watchListShows', {
     method: 'GET'
   });
 }
 
 async function droppedShowsData() {
-  droppedData.value = await $fetch('/api/droppedShows', {
+  droppedData.value = await $fetch('/api/fetchLists/droppedShows', {
     method: 'GET'
   });
 }
@@ -146,7 +200,7 @@ defineExpose({
   refreshWatchList: watchListShowsData,
   refreshCompleted: completedShowsData,
   refreshDropped: droppedShowsData,
-  refreshOngoing: ongoingShowsData
+  refreshOngoing: inProgressShowsData
 })
 
 </script>
@@ -178,6 +232,29 @@ defineExpose({
 
   &__image-wrapper {
     flex-basis: 10%;
+  }
+
+  &__remove-button {
+    height: 4rem;
+    border: none;
+    background: none;
+  }
+
+  &__remove-button-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    fill: var(--error-red);
+    cursor: pointer;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    img {
+      display: block;
+    }
   }
 
   &__image {
