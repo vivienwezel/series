@@ -1,6 +1,10 @@
 <template>
   <div v-show="completed">
     <div v-if="completedData" class="series-tile__wrapper">
+      <div v-if="completedTotalRuntime > 0" class="series-tile__summary">
+        <strong>Total Runtime:</strong> {{ formatRuntime(completedTotalRuntime) }} ({{ completedData.total_results }}
+        shows)
+      </div>
       <div v-for="result in completedData.results" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
@@ -10,12 +14,17 @@
         </div>
         <div class="series-tile__info-wrapper">
           <div class="series-tile__title">{{ result.original_name }}</div>
-          <div>{{ result.details?.number_of_seasons }} Seasons</div>
+          <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
+          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
+            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
+          </div>
+          <br>
           <div class="series-tile__description">{{ result.overview }}</div>
         </div>
-        <button @click="removeItemFromList('completed', result.id)">x</button>
+        <button class="series-tile__remove-button" @click="removeItemFromList('completed', result.id)">
+          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+        </button>
       </div>
-      {{ completedData.total_results }}
     </div>
   </div>
 
@@ -30,10 +39,14 @@
         </div>
         <div class="series-tile__info-wrapper">
           <div class="series-tile__title">{{ result.original_name }}</div>
+          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
+            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
+          </div>
         </div>
-        <button @click="removeItemFromList('dropped', result.id)">x</button>
+        <button class="series-tile__remove-button" @click="removeItemFromList('dropped', result.id)">
+          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+        </button>
       </div>
-      {{ droppedData.total_results }}
     </div>
   </div>
 
@@ -48,12 +61,17 @@
         </div>
         <div class="series-tile__info-wrapper">
           <div class="series-tile__title">{{ result.original_name }}</div>
-          <div>{{ result.details?.number_of_seasons }} Seasons</div>
+          <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
+          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
+            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
+          </div>
+          <br>
           <div class="series-tile__description">{{ result.overview }}</div>
         </div>
-        <button @click="removeItemFromList('watchlist', result.id)">x</button>
+        <button class="series-tile__remove-button" @click="removeItemFromList('watchlist', result.id)">
+          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+        </button>
       </div>
-      {{ watchListData.total_results }}
     </div>
   </div>
 
@@ -68,21 +86,24 @@
         </div>
         <div class="series-tile__info-wrapper">
           <div class="series-tile__title">{{ result.original_name }}</div>
-          <div>{{ result.details?.number_of_seasons }} Seasons</div>
+          <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
+          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
+            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
+          </div>
+          <br>
           <div class="series-tile__description">{{ result.overview }}</div>
         </div>
         <button class="series-tile__remove-button" @click="removeItemFromList('inProgress', result.id)">
           <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
         </button>
       </div>
-      {{ inProgressData.total_results }}
     </div>
   </div>
 
 </template>
 
 <script lang="ts" setup>
-import {onMounted, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import Icon from '~/vue components/icons/Icon.vue'
 
 defineProps({
@@ -112,6 +133,12 @@ const droppedData = ref(null)
 const watchListData = ref(null)
 const inProgressData = ref(null)
 const imageUrl = ref('https://media.themoviedb.org/t/p/w220_and_h330_face')
+
+// Computed properties for list total runtimes
+const completedTotalRuntime = computed(() => {
+  if (!completedData.value?.results) return 0
+  return completedData.value.results.reduce((total, show) => total + calculateTotalRuntime(show), 0)
+})
 
 onMounted(() => {
   completedShowsData()
@@ -167,10 +194,20 @@ async function removeItemFromList(listType, mediaId) {
   }
 }
 
+/**
+ * Enrich a list of TV shows with additional details from v3
+ * @param {Object} listData - The list of TV shows to enrich
+ * @returns {Promise<Object>} A promise that resolves with the enriched list of TV shows
+ *
+ * Enriches each show with details from v3, and then fetches season details for each show.
+ * The returned list will contain the original list items with two additional properties:
+ * - `details`: The general details of the show from v3
+ * - `seasonDetails`: An array of season details for the show from v3
+ */
 async function enrichWithDetails(listData) {
   if (!listData || !listData.results) return listData;
 
-  // Fetch details for all items in parallel
+  // Fetch details from v3 for all items in parallel
   const detailsPromises = listData.results.map(item =>
       $fetch('/api/fetchDetails/tvSeriesDetails', {
         method: 'GET',
@@ -183,10 +220,46 @@ async function enrichWithDetails(listData) {
 
   const details = await Promise.all(detailsPromises);
 
-  // Merge details into original items
+  // Merge general details from v3 into original items
   listData.results = listData.results.map((item, index) => ({
     ...item,
     details: details[index]
+  }));
+
+  // Now fetch season details for each show
+  const seasonDetailsPromises = listData.results.map(async (item) => {
+    if (!item.details || !item.details.number_of_seasons) {
+      return []; // No seasons to fetch
+    }
+
+    const numberOfSeasons = item.details.number_of_seasons;
+    const seasonPromises = [];
+
+    // Fetch details for each season (season numbers typically start from 1)
+    for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
+      seasonPromises.push(
+          $fetch('/api/fetchDetails/tvSeasonDetails', {
+            method: 'GET',
+            query: {
+              seriesId: item.id,
+              seasonNumber: seasonNum
+            }
+          }).catch(err => {
+            console.error(`Error fetching season ${seasonNum} for series ${item.id}:`, err);
+            return null;
+          })
+      );
+    }
+
+    return await Promise.all(seasonPromises);
+  });
+
+  const allSeasonDetails = await Promise.all(seasonDetailsPromises);
+
+  // Add season details to each show
+  listData.results = listData.results.map((item, index) => ({
+    ...item,
+    seasonDetails: allSeasonDetails[index]
   }));
 
   return listData;
@@ -205,7 +278,6 @@ async function inProgressShowsData() {
     method: 'GET'
   });
   inProgressData.value = await enrichWithDetails(data);
-  console.log(inProgressData.value, 'inProgress Data')
 }
 
 async function watchListShowsData() {
@@ -221,6 +293,55 @@ async function droppedShowsData() {
   });
   droppedData.value = await enrichWithDetails(data);
 }
+
+/**
+ * Calculate total runtime for a show by summing up all episode runtimes
+ * @param {Object} show - The show object containing seasonDetails
+ * @returns {number} Total runtime in minutes
+ */
+function calculateTotalRuntime(show) {
+  if (!show || !show.seasonDetails || show.seasonDetails.length === 0) {
+    return 0;
+  }
+
+  let totalMinutes = 0;
+
+  // Iterate through all seasons
+  for (const season of show.seasonDetails) {
+    if (!season || !season.episodes) continue;
+
+    // Iterate through all episodes in the season
+    for (const episode of season.episodes) {
+      if (episode && episode.runtime) {
+        totalMinutes += episode.runtime;
+      }
+    }
+  }
+
+  return totalMinutes;
+}
+
+/**
+ * Format runtime in minutes to days, hours and minutes
+ * @param {number} minutes - Total runtime in minutes
+ * @returns {string} Formatted string like "2d 5h 30m", "2h 30m" or "45m"
+ */
+function formatRuntime(minutes) {
+  if (minutes === 0) return '0m';
+
+  const totalHours = Math.floor(minutes / 60);
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  const remainingMinutes = minutes % 60;
+
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (remainingMinutes > 0) parts.push(`${remainingMinutes}m`);
+
+  return parts.join(' ');
+}
+
 
 // Expose methods so parent can trigger refresh
 defineExpose({
@@ -250,6 +371,21 @@ defineExpose({
     display: flex;
     flex-direction: column;
     gap: 1rem;
+  }
+
+  &__summary {
+    padding: 1rem 1.5rem;
+    background-color: var(--blue);
+    color: var(--grey);
+    border-radius: 0.5rem;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0.5rem;
+
+    strong {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
   }
 
   &__info-wrapper {
