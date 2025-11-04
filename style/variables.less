@@ -1,18 +1,36 @@
 :root {
   /* CSS HEX */
-  --light-blue: #8ecae6;
-  --blue: #219ebc;
-  --dark-blue: #023047;
-  --yellow: #ffb703;
-  --orange: #fb8500;
-  --grey: #edede9;
+  --blue: #14213d;
+  --beige: #EAB464;
+  --orange: #fca311;
+  --white: #f9f7f3;
+  --grey: #e5e5e5;
+  --black: #000000;
+
+  --error-red: #d32f2f;
   --success-green: #2e7d32;
   --success-light-green: #e8f5e9;
-  --error-red: #d32f2f;
+
+  --tile-color: var(--white);
+  --background-dark: var(--blue);
+  --button-primary: var(--orange);
+  --button-primary-hover: #fb8500;
+  --button-secondary: var(--grey);
+  --text-primary: var(--white);
+  --text-secondary: var(--black);
+  --border-color: var(--black);
 
   --tile-box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
 }
 
 html {
-  font-family: sans-serif;
+  font-family: 'Lato', sans-serif;
+}
+
+body {
+  background-color: var(--background-dark);
+}
+
+h1 {
+  color: var(--text-primary);
 }

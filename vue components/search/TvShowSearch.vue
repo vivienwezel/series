@@ -23,12 +23,6 @@
           <img alt="Clear" height="20" src="/icons/close.svg" width="20">
         </button>
       </div>
-      <button
-          class="tv-show-search__submit-button"
-          type="submit"
-      >
-        Search
-      </button>
     </form>
 
     <div v-if="searchInput !== '' && searchResults" class="tv-show-search__results">
@@ -112,11 +106,13 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
+import PrimaryButton from '~/vue components/buttons/primaryButton.vue'
 import Icon from "~/vue components/icons/Icon.vue";
 
 export default defineComponent({
   name: "TvShowSearch",
   components: {
+    PrimaryButton,
     Icon
   },
   emits: ['item-added'],
@@ -284,8 +280,8 @@ export default defineComponent({
 
     button {
       display: flex;
-      background: var(--grey, #fff);
-      border: 1px solid var(--border-color, #ccc);
+      background: var(--button-secondary, #fff);
+      border: 1px solid var(--grey, #ccc);
       border-radius: .5rem;
       height: 3rem;
       width: 2rem;
@@ -296,7 +292,7 @@ export default defineComponent({
     }
 
     :deep(svg path:not([fill="none"])) {
-      fill: var(--blue);
+      fill: var(--button-primary);
     }
   }
 
@@ -316,12 +312,12 @@ export default defineComponent({
     transition: border-color 0.2s;
 
     &:focus {
-      border: 2px solid var(--yellow, #ffd700);
+      border: 2px solid var(--button-primary, #ffd700);
     }
   }
 
   &__submit-button {
-    background-color: var(--yellow, #ffd700);
+    background-color: var(--button-primary, #ffd700);
   }
 
   &__clear-button {
@@ -367,7 +363,7 @@ export default defineComponent({
 
   &__pagination-button {
     padding: 0.5rem 1rem;
-    background-color: var(--yellow, #ffd700);
+    background-color: var(--button-secondary, #ffd700);
     border: none;
     border-radius: 0.5rem;
     color: var(--dark-blue, #1a1a2e);
@@ -388,13 +384,14 @@ export default defineComponent({
 
   &__pagination-info {
     font-size: 0.875rem;
-    color: var(--text-secondary, #666);
+    color: var(--text-primary, #666);
     min-width: 100px;
     text-align: center;
   }
 
   &__result-item {
     display: flex;
+    background-color: var(--white);
     width: 45%;
     padding: 1rem;
     margin-bottom: 1rem;

@@ -26,6 +26,7 @@ const handleItemAdded = () => {
 
 <style scoped>
 .completed-list-page {
+  background-color: var(--background-dark);
   padding: 1.25rem;
   max-width: 75rem;
   margin: 0 auto;

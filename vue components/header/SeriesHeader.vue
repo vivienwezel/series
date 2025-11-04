@@ -2,23 +2,23 @@
   <div class="series-header__wrapper">
     <div class="series-header__navigation">
       <NuxtLink class="series-header__navigation-link" to="/">
-        <Icon name="home" />
+        <Icon name="home"/>
         Home
       </NuxtLink>
       <NuxtLink class="series-header__navigation-link" to="/watchListPage">
-        <Icon name="bookmark" />
+        <Icon name="bookmark"/>
         Watchlist
       </NuxtLink>
       <NuxtLink class="series-header__navigation-link" to="/inProgressShowsPage">
-        <Icon name="play_circle" />
+        <Icon name="play_circle"/>
         In Progress
       </NuxtLink>
       <NuxtLink class="series-header__navigation-link" to="/completedShowsPage">
-        <Icon name="check_circle" />
+        <Icon name="check_circle"/>
         Completed
       </NuxtLink>
       <NuxtLink class="series-header__navigation-link" to="/droppedShowsPage">
-        <Icon name="cancel" />
+        <Icon name="cancel"/>
         Dropped
       </NuxtLink>
     </div>
@@ -27,6 +27,7 @@
     </div>
   </div>
 </template>
+
 <script lang="ts" setup>
 import Searchbox from "~/vue components/search/searchbox.vue";
 import Icon from "~/vue components/icons/Icon.vue";
@@ -44,7 +45,8 @@ import Icon from "~/vue components/icons/Icon.vue";
     margin: 0 auto;
     gap: 1rem;
     height: 5rem;
-    background: var(--dark-blue);
+    background: var();
+    border: 1px solid var(--border-color);
   }
 
   &__navigation {
@@ -55,9 +57,9 @@ import Icon from "~/vue components/icons/Icon.vue";
       display: flex;
       align-items: center;
       padding: 0 1rem;
-      color: var(--grey);
+      color: var(--text-primary);
       text-decoration: none;
-      border-right: 2px solid var(--grey);
+      border-right: 2px solid var(--text-primary);
 
       &:hover {
         color: var(--grey);
@@ -66,7 +68,7 @@ import Icon from "~/vue components/icons/Icon.vue";
 
       svg {
         margin-right: 0.5rem;
-        fill: var(--grey);
+        fill: var(--text-primary);
       }
 
       &:hover svg {

@@ -1,55 +1,4 @@
 <template>
-  <div v-show="completed">
-    <div v-if="completedData" class="series-tile__wrapper">
-      <div v-if="completedTotalRuntime > 0" class="series-tile__summary">
-        <strong>Total Runtime:</strong> {{ formatRuntime(completedTotalRuntime) }} ({{ completedData.total_results }}
-        shows)
-      </div>
-      <div v-for="result in completedData.results" class="series-tile">
-        <div class="series-tile__image-wrapper">
-          <div class="series-tile__image">
-            <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
-                 class="series-tile__img">
-          </div>
-        </div>
-        <div class="series-tile__info-wrapper">
-          <div class="series-tile__title">{{ result.original_name }}</div>
-          <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
-          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
-            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
-          </div>
-          <br>
-          <div class="series-tile__description">{{ result.overview }}</div>
-        </div>
-        <button class="series-tile__remove-button" @click="removeItemFromList('completed', result.id)">
-          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div v-show="dropped">
-    <div v-if="droppedData" class="series-tile__wrapper">
-      <div v-for="result in droppedData.results" class="series-tile">
-        <div class="series-tile__image-wrapper">
-          <div class="series-tile__image">
-            <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
-                 class="series-tile__img">
-          </div>
-        </div>
-        <div class="series-tile__info-wrapper">
-          <div class="series-tile__title">{{ result.original_name }}</div>
-          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
-            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
-          </div>
-        </div>
-        <button class="series-tile__remove-button" @click="removeItemFromList('dropped', result.id)">
-          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <div v-show="watch">
     <div v-if="watchListData" class="series-tile__wrapper">
       <div v-for="result in watchListData.results" class="series-tile">
@@ -60,13 +9,23 @@
           </div>
         </div>
         <div class="series-tile__info-wrapper">
-          <div class="series-tile__title">{{ result.original_name }}</div>
+          <div class="series-tile__title">{{ result.original_name }} ({{
+              result.details?.first_air_date.split('-')[0]
+            }})
+          </div>
           <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
           <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
             Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
           </div>
           <br>
-          <div class="series-tile__description">{{ result.overview }}</div>
+          <div class="series-tile__description-wrapper">
+            <div v-show="isExpanded(result.id)" class="series-tile__description-more">{{ result.overview }}</div>
+            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)" class="series-tile__description-less">{{ result.overview }}</div>
+            <primary-button v-if="needsToggleButton(result.id) || isExpanded(result.id)" :buttonName="toggleCtaLabel(result.id)" @click="toggleExpanded(result.id)"></primary-button>
+          </div>
+        </div>
+        <div class="series-tile__status">
+          {{ result.details?.status }}
         </div>
         <button class="series-tile__remove-button" @click="removeItemFromList('watchlist', result.id)">
           <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
@@ -85,15 +44,90 @@
           </div>
         </div>
         <div class="series-tile__info-wrapper">
-          <div class="series-tile__title">{{ result.original_name }}</div>
+          <div class="series-tile__title">{{ result.original_name }} ({{
+              result.details?.first_air_date.split('-')[0]
+            }})
+          </div>
           <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
           <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
             Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
           </div>
           <br>
-          <div class="series-tile__description">{{ result.overview }}</div>
+          <div class="series-tile__description-wrapper">
+            <div v-show="isExpanded(result.id)" class="series-tile__description-more">{{ result.overview }}</div>
+            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)" class="series-tile__description-less">{{ result.overview }}</div>
+            <primary-button v-if="needsToggleButton(result.id) || isExpanded(result.id)" :buttonName="toggleCtaLabel(result.id)" @click="toggleExpanded(result.id)"></primary-button>
+          </div>
+        </div>
+        <div class="series-tile__status">
+          {{ result.details?.status }}
         </div>
         <button class="series-tile__remove-button" @click="removeItemFromList('inProgress', result.id)">
+          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div v-show="completed">
+    <div v-if="completedData" class="series-tile__wrapper">
+      <div v-if="completedTotalRuntime > 0" class="series-tile__summary">
+        <strong>Total Runtime:</strong> {{ formatRuntime(completedTotalRuntime) }} ({{ completedData.total_results }}
+        shows)
+      </div>
+      <div v-for="result in completedData.results"
+           :class="{'series-tile':!isExpanded(result.id),'series-tile--expanded':isExpanded(result.id)}">
+        <div class="series-tile__image-wrapper">
+          <div class="series-tile__image">
+            <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
+                 class="series-tile__img">
+          </div>
+        </div>
+        <div class="series-tile__info-wrapper">
+          <div class="series-tile__title">{{ result.original_name }} ({{
+              result.details?.first_air_date.split('-')[0]
+            }})
+          </div>
+          <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
+          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
+            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
+          </div>
+          <br>
+          <div class="series-tile__description-wrapper">
+            <div v-show="isExpanded(result.id)" class="series-tile__description-more">{{ result.overview }}</div>
+            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)" class="series-tile__description-less">{{ result.overview }}</div>
+            <primary-button v-if="needsToggleButton(result.id) || isExpanded(result.id)" :buttonName="toggleCtaLabel(result.id)" @click="toggleExpanded(result.id)"></primary-button>
+          </div>
+        </div>
+        <div class="series-tile__status">
+          {{ result.details?.status }}
+        </div>
+        <button class="series-tile__remove-button" @click="removeItemFromList('completed', result.id)">
+          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div v-show="dropped">
+    <div v-if="droppedData" class="series-tile__wrapper">
+      <div v-for="result in droppedData.results" class="series-tile">
+        <div class="series-tile__image-wrapper">
+          <div class="series-tile__image">
+            <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
+                 class="series-tile__img">
+          </div>
+        </div>
+        <div class="series-tile__info-wrapper">
+          <div class="series-tile__title">{{ result.original_name }} ({{
+              result.details?.first_air_date.split('-')[0]
+            }})
+          </div>
+          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
+            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
+          </div>
+        </div>
+        <button class="series-tile__remove-button" @click="removeItemFromList('dropped', result.id)">
           <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
         </button>
       </div>
@@ -103,8 +137,9 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue'
+import {computed, nextTick, onMounted, ref} from 'vue'
 import Icon from '~/vue components/icons/Icon.vue'
+import PrimaryButton from "~/vue components/buttons/primaryButton.vue";
 
 defineProps({
   completed: {
@@ -132,7 +167,33 @@ const completedData = ref(null)
 const droppedData = ref(null)
 const watchListData = ref(null)
 const inProgressData = ref(null)
+const expandedItems = ref(new Set())
+const itemsNeedingToggle = ref(new Set())
 const imageUrl = ref('https://media.themoviedb.org/t/p/w220_and_h330_face')
+
+const isExpanded = (id) => expandedItems.value.has(id)
+const toggleExpanded = (id) => {
+  if (expandedItems.value.has(id)) {
+    expandedItems.value.delete(id)
+  } else {
+    expandedItems.value.add(id)
+  }
+}
+const toggleCtaLabel = (id) => isExpanded(id) ? 'Show Less' : 'Show More'
+const needsToggleButton = (id) => itemsNeedingToggle.value.has(id)
+
+const setDescriptionRef = (el, id) => {
+  if (el) {
+    nextTick(() => {
+      // Check if the content overflows (scrollHeight > clientHeight means text is clamped)
+      if (el.scrollHeight > el.clientHeight) {
+        itemsNeedingToggle.value.add(id)
+      } else {
+        itemsNeedingToggle.value.delete(id)
+      }
+    })
+  }
+}
 
 // Computed properties for list total runtimes
 const completedTotalRuntime = computed(() => {
@@ -271,6 +332,8 @@ async function completedShowsData() {
   });
   completedData.value = await enrichWithDetails(data);
   console.log(completedData.value, 'completed Data')
+  // Clear toggle button tracking when data changes
+  itemsNeedingToggle.value.clear()
 }
 
 async function inProgressShowsData() {
@@ -278,6 +341,7 @@ async function inProgressShowsData() {
     method: 'GET'
   });
   inProgressData.value = await enrichWithDetails(data);
+  itemsNeedingToggle.value.clear()
 }
 
 async function watchListShowsData() {
@@ -285,6 +349,7 @@ async function watchListShowsData() {
     method: 'GET'
   });
   watchListData.value = await enrichWithDetails(data);
+  itemsNeedingToggle.value.clear()
 }
 
 async function droppedShowsData() {
@@ -292,6 +357,7 @@ async function droppedShowsData() {
     method: 'GET'
   });
   droppedData.value = await enrichWithDetails(data);
+  itemsNeedingToggle.value.clear()
 }
 
 /**
@@ -357,14 +423,57 @@ defineExpose({
 
 .series-tile {
   display: flex;
-  height: 10rem;
+  height: 13rem;
   box-shadow: var(--tile-box-shadow);
+  background-color: var(--tile-color);
   border-radius: .5rem;
-  border: 1px solid var(--grey);
+  border: 1px solid var(--black);
   gap: 2rem;
+
+  &--expanded {
+    display: flex;
+    height: max-content;
+    box-shadow: var(--tile-box-shadow);
+    background-color: var(--tile-color);
+    border-radius: .5rem;
+    border: 1px solid var(--border-color);
+    gap: 2rem;
+  }
 
   &__title {
     font-weight: bold;
+  }
+
+  &__description-wrapper button {
+    margin-top: .4rem;
+    font-weight: bold;
+  }
+
+  &__description-less {
+    height: max-content;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+
+  &__description-more {
+    height: max-content;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 9;
+    -webkit-box-orient: vertical;
+  }
+
+  &__show-more-button {
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: var(--black);
+    background-color: var(--button-primary);
+    padding: .2rem;
+    cursor: pointer;
+    border: 1px solid var(--button-primary);
+    border-radius: .5rem;
   }
 
   &__wrapper {
@@ -375,8 +484,8 @@ defineExpose({
 
   &__summary {
     padding: 1rem 1.5rem;
-    background-color: var(--blue);
-    color: var(--grey);
+    background-color: var(--beige);
+    color: var(--text-secondary);
     border-radius: 0.5rem;
     font-size: 1.1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -389,12 +498,14 @@ defineExpose({
   }
 
   &__info-wrapper {
-    flex-basis: 90%;
+    flex-basis: 80%;
     padding: 1rem;
   }
 
   &__image-wrapper {
     flex-basis: 10%;
+    align-content: center;
+    margin-left: 1rem;
   }
 
   &__remove-button {
@@ -408,27 +519,27 @@ defineExpose({
     align-items: center;
     justify-content: center;
     padding: 0.25rem;
-    fill: var(--error-red);
     cursor: pointer;
 
     &:hover {
       opacity: 1;
     }
 
-    img {
-      display: block;
+    svg {
+      fill: var(--error-red);
     }
-  }
-
-  &__image {
-    border-top-left-radius: .5rem;
-    border-bottom-left-radius: .5rem;
   }
 
   &__img {
     height: 10rem;
-    border-top-left-radius: .5rem;
-    border-bottom-left-radius: .5rem;
+    border-radius: .5rem;
+  }
+
+  &__status {
+    display: flex;
+    flex-basis: 10%;
+    padding: 1rem;
+    font-weight: bold;
   }
 }
 </style>
