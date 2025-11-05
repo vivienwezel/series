@@ -1,14 +1,20 @@
 <template>
   <dialog id="searchDialog">
     <form class="searchbox__search-form">
-      <label for="search-query">Search Series:</label>
-      <input id="search-query" v-model="searchInput" autocomplete="off" class="searchbox__search-input"
+      <div class="searchbox__search-label">
+        <label for="search-query">Browse the TMDB library for shows and movies</label>
+      </div>
+      <input v-model="searchInput" autocomplete="off" class="searchbox__search-input"
              name="search-query"
              type="search">
-      <button id="confirm-search" class="searchbox__search-submit-button" type="submit" value="default"
-              @click.prevent="searchBundledData">Search
-      </button>
-      <button autofocus formmethod="dialog" value="cancel">Close</button>
+      <div class="searchbox__search-buttons">
+        <action-button id="confirm-search" buttonName="Search" class="searchbox__search-submit-button" primary
+                       type="submit"
+                       value="default"
+                       @click.prevent="searchBundledData"></action-button>
+        <action-button id="cancel-search" autofocus buttonName="Cancel" formmethod="dialog" secondary
+                       value="cancel"></action-button>
+      </div>
     </form>
     <div v-if="searchInput !== ''" id="search-results">
       <div v-if="searchTvData && searchTvData.results && searchTvData.results.length > 0"
@@ -50,16 +56,21 @@
   </dialog>
 
   <div class="searchbox__search-button-wrapper">
-    <button id="showDialog" class="searchbox__search-button">Search</button>
+    <button id="showDialog" class="searchbox__search-button">
+      <Icon name="search"></Icon>
+    </button>
   </div>
 
 </template>
 
 <script lang="ts">
 import {defineComponent} from 'vue'
+import ActionButton from "~/vue components/buttons/actionButton.vue";
+import Icon from "~/vue components/icons/Icon.vue";
 
 export default defineComponent({
   name: "searchbox",
+  components: {Icon, ActionButton, PrimaryButton: ActionButton},
   data() {
     return {
       searchInput: '',
@@ -83,7 +94,7 @@ export default defineComponent({
 
 // Prevent the "confirm" button from the default behavior of submitting the form, and close the dialog with the `close()` method, which triggers the "close" event.
     confirmBtn.addEventListener("click", (event) => {
-      event.preventDefault(); // We don't want to submit this fake form
+      event.preventDefault();
     });
 
     closeButton.addEventListener("click", () => {
@@ -162,6 +173,10 @@ export default defineComponent({
     outline: 2px solid transparent;
     padding: 1rem 1.5rem;
     text-align: center;
+
+    svg {
+      fill: var(--text-primary);
+    }
   }
 
   &__search-result-item {
@@ -170,6 +185,44 @@ export default defineComponent({
     height: 5rem;
     margin: .5rem;
     gap: 1rem;
+  }
+
+  &__search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__search-buttons {
+    display: flex;
+    justify-content: space-between;
+    column-gap: 1rem;
+
+  }
+}
+
+#searchDialog {
+  height: max-content;
+  width: 30rem;
+  border-radius: .2rem;
+  border: 1px solid var(--grey);
+  box-shadow: var(--tile-box-shadow);
+
+  input {
+    width: 30rem;
+    height: 2.5rem;
+    border-radius: .3rem;
+    border: 1px solid var(--black);
+  }
+
+  #confirm-search {
+    background-color: var(--button-primary);
+    width: 100%;
+  }
+
+  #cancel-search {
+    background-color: var(--button-secondary);
+    width: 30%;
   }
 }
 

@@ -1,29 +1,31 @@
 <template>
-  <div class="series-header__wrapper">
-    <div class="series-header__navigation">
-      <NuxtLink class="series-header__navigation-link" to="/">
-        <Icon name="home"/>
-        Home
-      </NuxtLink>
-      <NuxtLink class="series-header__navigation-link" to="/watchListPage">
-        <Icon name="bookmark"/>
-        Watchlist
-      </NuxtLink>
-      <NuxtLink class="series-header__navigation-link" to="/inProgressShowsPage">
-        <Icon name="play_circle"/>
-        In Progress
-      </NuxtLink>
-      <NuxtLink class="series-header__navigation-link" to="/completedShowsPage">
-        <Icon name="check_circle"/>
-        Completed
-      </NuxtLink>
-      <NuxtLink class="series-header__navigation-link" to="/droppedShowsPage">
-        <Icon name="cancel"/>
-        Dropped
-      </NuxtLink>
-    </div>
-    <div class="series-header__search">
-      <searchbox></searchbox>
+  <div class="series-header">
+    <div class="series-header__wrapper">
+      <div class="series-header__navigation">
+        <NuxtLink class="series-header__navigation-link" to="/">
+          <Icon name="home"/>
+          Home
+        </NuxtLink>
+        <NuxtLink class="series-header__navigation-link" to="/watchListPage">
+          <Icon name="bookmark"/>
+          Watchlist
+        </NuxtLink>
+        <NuxtLink class="series-header__navigation-link" to="/inProgressShowsPage">
+          <Icon name="play_circle"/>
+          In Progress
+        </NuxtLink>
+        <NuxtLink class="series-header__navigation-link" to="/completedShowsPage">
+          <Icon name="check_circle"/>
+          Completed
+        </NuxtLink>
+        <NuxtLink class="series-header__navigation-link" to="/droppedShowsPage">
+          <Icon name="cancel"/>
+          Dropped
+        </NuxtLink>
+      </div>
+      <div class="series-header__search">
+        <searchbox></searchbox>
+      </div>
     </div>
   </div>
 </template>
@@ -36,6 +38,9 @@ import Icon from "~/vue components/icons/Icon.vue";
 <style lang="less">
 
 .series-header {
+  display: flex;
+  margin: -.5rem;
+
   &__wrapper {
     display: flex;
     flex-direction: row;
@@ -45,8 +50,7 @@ import Icon from "~/vue components/icons/Icon.vue";
     margin: 0 auto;
     gap: 1rem;
     height: 5rem;
-    background: var();
-    border: 1px solid var(--border-color);
+    background: var(--header-background);
   }
 
   &__navigation {

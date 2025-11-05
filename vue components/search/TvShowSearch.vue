@@ -106,13 +106,13 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import PrimaryButton from '~/vue components/buttons/primaryButton.vue'
+import ActionButton from '~/vue components/buttons/actionButton.vue'
 import Icon from "~/vue components/icons/Icon.vue";
 
 export default defineComponent({
   name: "TvShowSearch",
   components: {
-    PrimaryButton,
+    PrimaryButton: ActionButton,
     Icon
   },
   emits: ['item-added'],
@@ -443,7 +443,7 @@ export default defineComponent({
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
-    color: var(--text-primary, #333);
+    color: var(--text-secondary, #333);
   }
 
   &__result-date {

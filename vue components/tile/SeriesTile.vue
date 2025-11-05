@@ -1,6 +1,9 @@
 <template>
   <div v-show="watch">
-    <div v-if="watchListData" class="series-tile__wrapper">
+    <div v-if="isLoadingWatchList" class="series-tile__loading-container">
+      <Loading/>
+    </div>
+    <div v-else-if="watchListData" class="series-tile__wrapper">
       <div v-for="result in watchListData.results" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
@@ -20,8 +23,12 @@
           <br>
           <div class="series-tile__description-wrapper">
             <div v-show="isExpanded(result.id)" class="series-tile__description-more">{{ result.overview }}</div>
-            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)" class="series-tile__description-less">{{ result.overview }}</div>
-            <primary-button v-if="needsToggleButton(result.id) || isExpanded(result.id)" :buttonName="toggleCtaLabel(result.id)" @click="toggleExpanded(result.id)"></primary-button>
+            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)"
+                 class="series-tile__description-less">{{ result.overview }}
+            </div>
+            <action-button v-if="needsToggleButton(result.id) || isExpanded(result.id)"
+                           :buttonName="toggleCtaLabel(result.id)"
+                           primary @click="toggleExpanded(result.id)"></action-button>
           </div>
         </div>
         <div class="series-tile__status">
@@ -35,7 +42,10 @@
   </div>
 
   <div v-show="inProgress">
-    <div v-if="inProgressData" class="series-tile__wrapper">
+    <div v-if="isLoadingInProgress" class="series-tile__loading-container">
+      <Loading/>
+    </div>
+    <div v-else-if="inProgressData" class="series-tile__wrapper">
       <div v-for="result in inProgressData.results" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
@@ -55,8 +65,12 @@
           <br>
           <div class="series-tile__description-wrapper">
             <div v-show="isExpanded(result.id)" class="series-tile__description-more">{{ result.overview }}</div>
-            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)" class="series-tile__description-less">{{ result.overview }}</div>
-            <primary-button v-if="needsToggleButton(result.id) || isExpanded(result.id)" :buttonName="toggleCtaLabel(result.id)" @click="toggleExpanded(result.id)"></primary-button>
+            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)"
+                 class="series-tile__description-less">{{ result.overview }}
+            </div>
+            <action-button v-if="needsToggleButton(result.id) || isExpanded(result.id)"
+                           :buttonName="toggleCtaLabel(result.id)"
+                           primary @click="toggleExpanded(result.id)"></action-button>
           </div>
         </div>
         <div class="series-tile__status">
@@ -70,7 +84,10 @@
   </div>
 
   <div v-show="completed">
-    <div v-if="completedData" class="series-tile__wrapper">
+    <div v-if="isLoadingCompleted" class="series-tile__loading-container">
+      <Loading/>
+    </div>
+    <div v-else-if="completedData" class="series-tile__wrapper">
       <div v-if="completedTotalRuntime > 0" class="series-tile__summary">
         <strong>Total Runtime:</strong> {{ formatRuntime(completedTotalRuntime) }} ({{ completedData.total_results }}
         shows)
@@ -95,8 +112,12 @@
           <br>
           <div class="series-tile__description-wrapper">
             <div v-show="isExpanded(result.id)" class="series-tile__description-more">{{ result.overview }}</div>
-            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)" class="series-tile__description-less">{{ result.overview }}</div>
-            <primary-button v-if="needsToggleButton(result.id) || isExpanded(result.id)" :buttonName="toggleCtaLabel(result.id)" @click="toggleExpanded(result.id)"></primary-button>
+            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)"
+                 class="series-tile__description-less">{{ result.overview }}
+            </div>
+            <action-button v-if="needsToggleButton(result.id) || isExpanded(result.id)"
+                           :buttonName="toggleCtaLabel(result.id)"
+                           primary @click="toggleExpanded(result.id)"></action-button>
           </div>
         </div>
         <div class="series-tile__status">
@@ -110,7 +131,10 @@
   </div>
 
   <div v-show="dropped">
-    <div v-if="droppedData" class="series-tile__wrapper">
+    <div v-if="isLoadingDropped" class="series-tile__loading-container">
+      <Loading/>
+    </div>
+    <div v-else-if="droppedData" class="series-tile__wrapper">
       <div v-for="result in droppedData.results" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
@@ -139,7 +163,8 @@
 <script lang="ts" setup>
 import {computed, nextTick, onMounted, ref} from 'vue'
 import Icon from '~/vue components/icons/Icon.vue'
-import PrimaryButton from "~/vue components/buttons/primaryButton.vue";
+import ActionButton from "~/vue components/buttons/actionButton.vue";
+import Loading from "~/vue components/loading.vue";
 
 defineProps({
   completed: {
@@ -167,6 +192,10 @@ const completedData = ref(null)
 const droppedData = ref(null)
 const watchListData = ref(null)
 const inProgressData = ref(null)
+const isLoadingCompleted = ref(false)
+const isLoadingDropped = ref(false)
+const isLoadingWatchList = ref(false)
+const isLoadingInProgress = ref(false)
 const expandedItems = ref(new Set())
 const itemsNeedingToggle = ref(new Set())
 const imageUrl = ref('https://media.themoviedb.org/t/p/w220_and_h330_face')
@@ -327,37 +356,57 @@ async function enrichWithDetails(listData) {
 }
 
 async function completedShowsData() {
-  const data = await $fetch('/api/fetchLists/completedShows', {
-    method: 'GET'
-  });
-  completedData.value = await enrichWithDetails(data);
-  console.log(completedData.value, 'completed Data')
-  // Clear toggle button tracking when data changes
-  itemsNeedingToggle.value.clear()
+  isLoadingCompleted.value = true;
+  try {
+    const data = await $fetch('/api/fetchLists/completedShows', {
+      method: 'GET'
+    });
+    completedData.value = await enrichWithDetails(data);
+    console.log(completedData.value, 'completed Data')
+    // Clear toggle button tracking when data changes
+    itemsNeedingToggle.value.clear()
+  } finally {
+    isLoadingCompleted.value = false;
+  }
 }
 
 async function inProgressShowsData() {
-  const data = await $fetch('/api/fetchLists/inProgressShows', {
-    method: 'GET'
-  });
-  inProgressData.value = await enrichWithDetails(data);
-  itemsNeedingToggle.value.clear()
+  isLoadingInProgress.value = true;
+  try {
+    const data = await $fetch('/api/fetchLists/inProgressShows', {
+      method: 'GET'
+    });
+    inProgressData.value = await enrichWithDetails(data);
+    itemsNeedingToggle.value.clear()
+  } finally {
+    isLoadingInProgress.value = false;
+  }
 }
 
 async function watchListShowsData() {
-  const data = await $fetch('/api/fetchLists/watchListShows', {
-    method: 'GET'
-  });
-  watchListData.value = await enrichWithDetails(data);
-  itemsNeedingToggle.value.clear()
+  isLoadingWatchList.value = true;
+  try {
+    const data = await $fetch('/api/fetchLists/watchListShows', {
+      method: 'GET'
+    });
+    watchListData.value = await enrichWithDetails(data);
+    itemsNeedingToggle.value.clear()
+  } finally {
+    isLoadingWatchList.value = false;
+  }
 }
 
 async function droppedShowsData() {
-  const data = await $fetch('/api/fetchLists/droppedShows', {
-    method: 'GET'
-  });
-  droppedData.value = await enrichWithDetails(data);
-  itemsNeedingToggle.value.clear()
+  isLoadingDropped.value = true;
+  try {
+    const data = await $fetch('/api/fetchLists/droppedShows', {
+      method: 'GET'
+    });
+    droppedData.value = await enrichWithDetails(data);
+    itemsNeedingToggle.value.clear()
+  } finally {
+    isLoadingDropped.value = false;
+  }
 }
 
 /**
@@ -447,6 +496,9 @@ defineExpose({
   &__description-wrapper button {
     margin-top: .4rem;
     font-weight: bold;
+    background: var(--beige);
+    font-size: 12px;
+    height: 2.2rem;
   }
 
   &__description-less {
@@ -463,17 +515,6 @@ defineExpose({
     display: -webkit-box;
     -webkit-line-clamp: 9;
     -webkit-box-orient: vertical;
-  }
-
-  &__show-more-button {
-    margin-top: 1rem;
-    font-size: 1rem;
-    color: var(--black);
-    background-color: var(--button-primary);
-    padding: .2rem;
-    cursor: pointer;
-    border: 1px solid var(--button-primary);
-    border-radius: .5rem;
   }
 
   &__wrapper {
@@ -540,6 +581,14 @@ defineExpose({
     flex-basis: 10%;
     padding: 1rem;
     font-weight: bold;
+  }
+
+  &__loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 20rem;
+    width: 100%;
   }
 }
 </style>
