@@ -22,6 +22,10 @@
           <Icon name="cancel"/>
           Dropped
         </NuxtLink>
+        <NuxtLink class="series-header__navigation-link" to="/strapiPage">
+          <Icon name="trash"/>
+          Strapi
+        </NuxtLink>
       </div>
       <div class="series-header__search">
         <searchbox></searchbox>
