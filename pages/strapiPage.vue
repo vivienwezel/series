@@ -15,10 +15,39 @@ type Article = {
 // Strapi API URL
 const STRAPI_URL = "http://localhost:1337";
 
-// Create a function to fetch data from the Strapi API
-const {data: articles} = useFetch<{ data: Article[] }>(
-    `${STRAPI_URL}/api/articles?populate=*`,
-);
+// Reactive state for articles and error
+const articles = ref<{ data: Article[] } | null>(null);
+const error = ref<Error | null>(null);
+const isLoading = ref(true);
+
+// Fetch articles with JWT token
+const fetchArticles = async () => {
+  try {
+    isLoading.value = true;
+    error.value = null;
+
+    const jwt = localStorage.getItem('jwt');
+
+    articles.value = await $fetch<{ data: Article[] }>(
+        `${STRAPI_URL}/api/articles?populate=*`,
+        {
+          headers: {
+            Authorization: jwt ? `Bearer ${jwt}` : '',
+          },
+        }
+    );
+  } catch (err: any) {
+    error.value = err;
+    console.error('Error fetching articles:', err);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Fetch on client-side only
+onMounted(() => {
+  fetchArticles();
+});
 
 // Format date
 const formatDate = (date: Date) => {
@@ -33,7 +62,21 @@ const formatDate = (date: Date) => {
       Nuxt.js and Strapi Integration
     </h1>
 
-    <div aria-labelledby="articles-title" class="strapi-page__articles-section">
+    <div v-if="isLoading" class="strapi-page__loading">
+      <p>Loading articles...</p>
+    </div>
+
+    <div v-else-if="error" class="strapi-page__error">
+      <p>Error loading articles: {{ error.message }}</p>
+      <p v-if="error.statusCode === 403">Please make sure you are logged in and have the correct permissions.</p>
+      <p v-else>Please try again or contact support.</p>
+    </div>
+
+    <div v-else-if="!articles?.data || articles.data.length === 0" class="strapi-page__empty">
+      <p>No articles found.</p>
+    </div>
+
+    <div v-else aria-labelledby="articles-title" class="strapi-page__articles-section">
       <h2 class="strapi-page__articles-title">Latest Articles</h2>
       <div class="strapi-page__article-wrapper">
         <article
@@ -75,6 +118,35 @@ h1 {
 
 .strapi-page {
   padding: 1rem;
+
+  &__loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+  }
+
+  &__error {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ef5350;
+
+    p {
+      margin: 0.5rem 0;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-primary);
+    background-color: var(--tile-color);
+    border-radius: 0.5rem;
+    margin: 1rem;
+  }
 
   &__articles-title {
     margin-bottom: 1rem;
