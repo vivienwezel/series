@@ -23,8 +23,9 @@ export default defineNuxtConfig({
     },
 
     runtimeConfig: {
-        apiSecretReadOnly: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2OWI2MzlkMzE3MTkxYmI5MzdkMmYzNWEwY2IyMjI2MCIsIm5iZiI6MTcxMjc1ODMwNC45NjIsInN1YiI6IjY2MTY5ZTIwMjQyZjk0MDE3ZGM0ZTRmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.-gp0hEsB0cOC5Y4X1GV9WWrztaGpLWQsRilk1LRjBVA',
-        apiSecret: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2OWI2MzlkMzE3MTkxYmI5MzdkMmYzNWEwY2IyMjI2MCIsInN1YiI6IjY2MTY5ZTIwMjQyZjk0MDE3ZGM0ZTRmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.-rt00T0F-35KD7JaTNHAsoRmahXwQNh_jWeQKBHTpt0',
+        // API secrets loaded from environment variables (.env file)
+        apiSecretReadOnly: '', // NUXT_API_SECRET_READ_ONLY
+        apiSecret: '', // NUXT_API_SECRET
         public: {
             apiBaseV3: 'https://api.themoviedb.org/3',
             apiBase: 'https://api.themoviedb.org/4',
