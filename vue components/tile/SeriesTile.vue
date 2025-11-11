@@ -666,6 +666,7 @@ defineExpose({
     padding: 0.25rem;
     cursor: pointer;
 
+
     &:hover {
       opacity: 1;
     }
