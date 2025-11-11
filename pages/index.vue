@@ -28,13 +28,11 @@
         </ul>
       </div>
     </section>
-    <strapi-page></strapi-page>
   </div>
 </template>
 
 <script setup>
 import TMDBAuthButton from "~/vue components/buttons/TMDBAuthButton.vue";
-import StrapiPage from "~/pages/strapiPage.vue";
 
 const backendUrl = "http://localhost:1337";
 

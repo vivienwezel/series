@@ -90,7 +90,7 @@ const formatDate = (date: Date) => {
               class="strapi-page__article-image"
           />
 
-          <div>
+          <div class="strapi-page__article-info">
             <h3>
               {{ article.title }}
             </h3>
@@ -156,6 +156,10 @@ h1 {
 
   &__articles-section {
     gap: 1rem;
+  }
+
+  &__article-info {
+    padding-left: 1rem;
   }
 
   &__article-wrapper {
