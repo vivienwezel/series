@@ -647,7 +647,6 @@ defineExpose({
       border: 1px solid var(--grey, #ccc);
       border-radius: .5rem;
       height: 3rem;
-
       width: 2rem;
 
       :hover {
