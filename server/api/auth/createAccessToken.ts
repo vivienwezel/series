@@ -1,29 +1,29 @@
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig(event)
     const body = await readBody(event)
-    
+
     if (!body?.request_token) {
         return {
             success: false,
             error: 'Request token is required'
         }
     }
-    
+
     const url = 'https://api.themoviedb.org/4/auth/access_token'
     const options = {
         method: 'POST',
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            Authorization: `Bearer ${config.apiSecret}`
+            Authorization: `Bearer ${config.apiSecretReadOnly}`
         },
-        body: JSON.stringify({ request_token: body.request_token })
+        body: JSON.stringify({request_token: body.request_token})
     }
 
     try {
         const response = await fetch(url, options)
         const data = await response.json()
-        
+
         if (data.success && data.access_token) {
             // Return the access token and account details
             return {

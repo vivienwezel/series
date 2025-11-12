@@ -5,7 +5,7 @@ export default defineEventHandler((event) => {
         method: 'GET',
         headers: {
             accept: 'application/json',
-            Authorization: `Bearer ${config.apiSecret}`
+            Authorization: `Bearer ${config.apiSecretReadOnly}`
         }
     };
 

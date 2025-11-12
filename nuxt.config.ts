@@ -25,7 +25,6 @@ export default defineNuxtConfig({
     runtimeConfig: {
         // API secrets loaded from environment variables (.env file)
         apiSecretReadOnly: '', // NUXT_API_SECRET_READ_ONLY
-        apiSecret: '', // NUXT_API_SECRET
         public: {
             apiBaseV3: 'https://api.themoviedb.org/3',
             apiBase: 'https://api.themoviedb.org/4',
