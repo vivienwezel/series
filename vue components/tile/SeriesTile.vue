@@ -76,9 +76,21 @@
         <div class="series-tile__status">
           {{ result.details?.status }}
         </div>
-        <button class="series-tile__remove-button" @click="removeItemFromList('inProgress', result.id)">
-          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
-        </button>
+        <div class="series-tile__action-buttons">
+          <div class="series-tile__remove-button-wrapper">
+            <button class="series-tile__remove-button" @click="removeItemFromList('inProgress', result.id)">
+              <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+            </button>
+          </div>
+          <div class="series-tile__move-buttons">
+            <button class="series-tile__move-to-completed" @click="moveShowToCompletedList(result.id)">
+              <Icon name="check_circle"></Icon>
+            </button>
+            <button class="series-tile__move-to-dropped" @click="moveShowToDroppedList(result.id)">
+              <Icon name="cancel"></Icon>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -123,9 +135,18 @@
         <div class="series-tile__status">
           {{ result.details?.status }}
         </div>
-        <button class="series-tile__remove-button" @click="removeItemFromList('completed', result.id)">
-          <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
-        </button>
+        <div class="series-tile__action-buttons">
+          <div class="series-tile__remove-button-wrapper">
+            <button class="series-tile__remove-button" @click="removeItemFromList('completed', result.id)">
+              <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+            </button>
+          </div>
+          <div class="series-tile__move-buttons">
+            <button class="series-tile__move-to-inProgress" @click="moveShowToInProgressList(result.id)">
+              <Icon name="play_circle"></Icon>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -282,6 +303,53 @@ async function removeItemFromList(listType, mediaId) {
   } catch (error) {
     console.error(`Error removing from ${listType}:`, error);
   }
+}
+
+async function addToList(mediaId, listType) {
+  const accessToken = localStorage.getItem('tmdb_access_token');
+
+  if (!accessToken) {
+    console.error('No access token found. Please authenticate first.');
+    return;
+  }
+
+  try {
+    const response = await $fetch('/api/listActions/addItemsToList', {
+      method: 'POST',
+      headers: {
+        'x-access-token': accessToken
+      },
+      body: {
+        listType,
+        items: [
+          {
+            media_type: 'tv',
+            media_id: mediaId
+          }
+        ]
+      }
+    });
+    console.log(`Successfully added to ${listType}:`, response);
+    this.$emit('item-added');
+  } catch (error) {
+    console.error(`Error adding to ${listType}:`, error);
+  }
+}
+
+async function moveShowToCompletedList(mediaId) {
+  await removeItemFromList('inProgress', mediaId);
+  await addToList(mediaId, 'completed');
+
+}
+
+async function moveShowToDroppedList(mediaId) {
+  await removeItemFromList('inProgress', mediaId);
+  await addToList(mediaId, 'dropped');
+}
+
+async function moveShowToInProgressList(mediaId) {
+  await removeItemFromList('completed', mediaId);
+  await addToList(mediaId, 'inProgress');
 }
 
 /**
@@ -549,10 +617,46 @@ defineExpose({
     margin-left: 1rem;
   }
 
+  &__action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
   &__remove-button {
     height: 4rem;
     border: none;
     background: none;
+
+    &-wrapper {
+      display: flex;
+      justify-content: end;
+      margin: 0 1rem 1rem 0;
+    }
+  }
+
+  &__move-buttons {
+    display: flex;
+    gap: .8rem;
+    margin: 0 1rem 1rem 0;
+
+    button {
+      display: flex;
+      background: var(--button-secondary, #fff);
+      border: 1px solid var(--grey, #ccc);
+      border-radius: .5rem;
+      height: 3rem;
+      width: 2rem;
+
+      :hover {
+        cursor: pointer;
+      }
+    }
+
+    svg path:not([fill="none"]) {
+      fill: var(--button-primary);
+    }
   }
 
   &__remove-button-icon {
@@ -561,6 +665,7 @@ defineExpose({
     justify-content: center;
     padding: 0.25rem;
     cursor: pointer;
+
 
     &:hover {
       opacity: 1;
