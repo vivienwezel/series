@@ -38,38 +38,18 @@ yarn dev
 bun run dev
 ```
 
-## Production
+# Setup Strapi headless CMS
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm run build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
+## Install Strapi
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+npx create-strapi-app@latest strapi
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Start Strapi
+
+```bash
+npm run develop
+```
+
+### For detailed integration guide strapi into nuxt project see https://strapi.io/integrations/nuxtjs-cms
