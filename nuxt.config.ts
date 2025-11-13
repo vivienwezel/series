@@ -1,43 +1,78 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: {enabled: true},
+    devtools: {enabled: true},
 
-  app: {
-      head: {
-          link: [
-              {
-                  rel: 'preconnect',
-                  href: 'https://fonts.googleapis.com'
-              },
-              {
-                  rel: 'preconnect',
-                  href: 'https://fonts.gstatic.com',
-                  crossorigin: ''
-              },
-              {
-                  rel: 'stylesheet',
-                  href: 'https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap'
-              }
-          ]
-      }
-  },
+    devServer: {
+        host: '0.0.0.0',
+        port: 3000
+    },
 
-  runtimeConfig: {
-      apiSecretReadOnly: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2OWI2MzlkMzE3MTkxYmI5MzdkMmYzNWEwY2IyMjI2MCIsIm5iZiI6MTcxMjc1ODMwNC45NjIsInN1YiI6IjY2MTY5ZTIwMjQyZjk0MDE3ZGM0ZTRmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.-gp0hEsB0cOC5Y4X1GV9WWrztaGpLWQsRilk1LRjBVA',
-      apiSecret: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2OWI2MzlkMzE3MTkxYmI5MzdkMmYzNWEwY2IyMjI2MCIsInN1YiI6IjY2MTY5ZTIwMjQyZjk0MDE3ZGM0ZTRmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.-rt00T0F-35KD7JaTNHAsoRmahXwQNh_jWeQKBHTpt0',
-      public: {
-          apiBaseV3: 'https://api.themoviedb.org/3',
-          apiBase: 'https://api.themoviedb.org/4',
-          showIds: {
-              watchlist: 8565917,
-              completed: 8296909,
-              dropped: 8296910,
-              inProgress: 8567808
-          }
-      }
+    vite: {
+        server: {
+            allowedHosts: ['myseries.com', 'de.myseries.com']
+        }
+    },
 
-  },
+    app: {
+        head: {
+            link: [
+                {
+                    rel: 'preconnect',
+                    href: 'https://fonts.googleapis.com'
+                },
+                {
+                    rel: 'preconnect',
+                    href: 'https://fonts.gstatic.com',
+                    crossorigin: ''
+                },
+                {
+                    rel: 'stylesheet',
+                    href: 'https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap'
+                }
+            ]
+        }
+    },
 
-  compatibilityDate: '2025-03-07',
-  modules: ['@nuxt/image']
+    runtimeConfig: {
+        apiSecretReadOnly: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2OWI2MzlkMzE3MTkxYmI5MzdkMmYzNWEwY2IyMjI2MCIsIm5iZiI6MTcxMjc1ODMwNC45NjIsInN1YiI6IjY2MTY5ZTIwMjQyZjk0MDE3ZGM0ZTRmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.-gp0hEsB0cOC5Y4X1GV9WWrztaGpLWQsRilk1LRjBVA',
+        apiSecret: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2OWI2MzlkMzE3MTkxYmI5MzdkMmYzNWEwY2IyMjI2MCIsInN1YiI6IjY2MTY5ZTIwMjQyZjk0MDE3ZGM0ZTRmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.-rt00T0F-35KD7JaTNHAsoRmahXwQNh_jWeQKBHTpt0',
+        public: {
+            apiBaseV3: 'https://api.themoviedb.org/3',
+            apiBase: 'https://api.themoviedb.org/4',
+            showIds: {
+                watchlist: 8565917,
+                completed: 8296909,
+                dropped: 8296910,
+                inProgress: 8567808
+            }
+        }
+
+    },
+
+    i18n: {
+        locales: [
+            {
+                code: 'en',
+                language: 'en-US',
+                name: 'English',
+                domain: 'myseries.com',
+                files: ['en.json']
+            },
+            {
+                code: 'de',
+                language: 'de-DE',
+                name: 'Deutsch',
+                domain: 'de.myseries.com',
+                files: ['de.json']
+            }
+        ],
+        langDir: 'locales',
+        defaultLocale: 'en',
+        differentDomains: process.env.NODE_ENV === 'production',
+        strategy: process.env.NODE_ENV === 'production' ? 'no_prefix' : 'prefix_except_default',
+        detectBrowserLanguage: false
+    },
+
+    compatibilityDate: '2025-03-07',
+    modules: ['@nuxt/image', '@nuxtjs/i18n']
 })

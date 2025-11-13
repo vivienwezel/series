@@ -1,22 +1,22 @@
 <template>
   <div>
-    <series-header />
+    <series-header/>
     <div v-if="hasBackendUrl">
-      <NuxtPage />
+      <NuxtPage/>
     </div>
     <section v-else class="backend-warning">
       <p>
         Please specify your backend url with the
         <a
-          href="https://nuxt.com/docs/api/composables/use-runtime-config"
-          target="_blank"
-          rel="noopener noreferrer"
+            href="https://nuxt.com/docs/api/composables/use-runtime-config"
+            rel="noopener noreferrer"
+            target="_blank"
         >
           runtime configuration
         </a>
-        entry:<br />
-        <strong>runtimeConfig.public.backendUrl</strong>.<br /><br />
-        For example, launch this app with:<br />
+        entry:<br/>
+        <strong>runtimeConfig.public.backendUrl</strong>.<br/><br/>
+        For example, launch this app with:<br/>
         <code>NITRO_PUBLIC_backendUrl=http://localhost:1337 npm run dev</code>
       </p>
     </section>

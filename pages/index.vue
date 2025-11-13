@@ -28,11 +28,13 @@
         </ul>
       </div>
     </section>
+    <LocaleSwitcher/>
   </div>
 </template>
 
 <script setup>
 import TMDBAuthButton from "~/vue components/buttons/TMDBAuthButton.vue";
+import LocaleSwitcher from "~/vue components/examples/LocaleSwitcher.vue";
 
 const backendUrl = "http://localhost:1337";
 
