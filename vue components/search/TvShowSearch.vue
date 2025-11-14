@@ -1,15 +1,15 @@
 <template>
   <div class="tv-show-search">
     <form class="tv-show-search__form" @submit.prevent="searchShows">
-      <label for="tv-search-query">Search TV Shows:</label>
+      <label for="tv-search-query">{{ $t('tv.search.label') }}</label>
       <div class="tv-show-search__input-wrapper">
         <input
             id="tv-search-query"
             v-model="searchInput"
+            :placeholder="$t('tv.search.placeholder')"
             autocomplete="off"
             class="tv-show-search__input"
             name="tv-search-query"
-            placeholder="Enter show name..."
             type="search"
             @input="handleInputChange"
         >
@@ -98,7 +98,7 @@
       </div>
 
       <div v-else-if="searchResults.results && searchResults.results.length === 0">
-        <p>No TV shows found for "{{ searchInput }}"</p>
+        <p>{{ $t('no.tv.results') }} "{{ searchInput }}"</p>
       </div>
     </div>
   </div>

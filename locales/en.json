@@ -1,0 +1,29 @@
+{
+  "welcome": "Welcome",
+  "home": "Home",
+  "watchlist": "Watchlist",
+  "completed": "Completed",
+  "dropped": "Dropped",
+  "inProgress": "In Progress",
+  "search": "Search",
+  "loading": "Loading...",
+  "error": "An error occurred",
+  "noResults": "No results found",
+  "seasons": "Seasons",
+  "episodes": "Episodes",
+  "completed.page.title": "Finished",
+  "watchList.page.title": "Watchlist",
+  "inProgress.page.title": "In Progress",
+  "dropped.page.title": "Dropped",
+  "tv.search.label": "Search TV Shows:",
+  "tv.search.placeholder": "Enter show name...",
+  "no.tv.results": "No TV shows found for",
+  "header": {
+    "home": "Home",
+    "watchlist": "Watchlist",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "dropped": "Dropped",
+    "strapi": "Strapi"
+  }
+}

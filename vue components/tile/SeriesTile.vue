@@ -1,10 +1,10 @@
 <template>
   <div v-show="watch">
-    <div v-if="isLoadingWatchList" class="series-tile__loading-container">
+    <div v-if="isLoadingWatchList && watchListData.results.length === 0" class="series-tile__loading-container">
       <Loading/>
     </div>
-    <div v-else-if="watchListData" class="series-tile__wrapper">
-      <div v-for="result in watchListData.results" class="series-tile">
+    <div v-if="watchListData.results.length > 0" class="series-tile__wrapper">
+      <div v-for="result in watchListData.results" :key="result.id" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
             <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
@@ -12,11 +12,13 @@
           </div>
         </div>
         <div class="series-tile__info-wrapper">
-          <div class="series-tile__title">{{ result.original_name }} ({{
-              result.details?.first_air_date.split('-')[0]
-            }})
+          <div class="series-tile__title">
+            {{ result.original_name }}
+            <span v-if="result.details?.first_air_date">({{ result.details.first_air_date.split('-')[0] }})</span>
           </div>
-          <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
+          <div v-if="result.details">{{ result.details.number_of_seasons }} {{ $t('seasons') }} /
+            {{ result.details.number_of_episodes }} {{ $t('episodes') }}
+          </div>
           <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
             Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
           </div>
@@ -39,14 +41,20 @@
         </button>
       </div>
     </div>
+    <div v-if="watchListData.results.length > 0 && watchListData.page < watchListData.total_pages"
+         class="series-tile__load-more">
+      <action-button :buttonName="isLoadingWatchList ? 'Loading...' : 'Load More'"
+                     :disabled="isLoadingWatchList"
+                     @click="watchListShowsData(false)"></action-button>
+    </div>
   </div>
 
   <div v-show="inProgress">
-    <div v-if="isLoadingInProgress" class="series-tile__loading-container">
+    <div v-if="isLoadingInProgress && inProgressData.results.length === 0" class="series-tile__loading-container">
       <Loading/>
     </div>
-    <div v-else-if="inProgressData" class="series-tile__wrapper">
-      <div v-for="result in inProgressData.results" class="series-tile">
+    <div v-if="inProgressData.results.length > 0" class="series-tile__wrapper">
+      <div v-for="result in inProgressData.results" :key="result.id" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
             <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
@@ -54,12 +62,14 @@
           </div>
         </div>
         <div class="series-tile__info-wrapper">
-          <div class="series-tile__title">{{ result.original_name }} ({{
-              result.details?.first_air_date.split('-')[0]
-            }})
+          <div class="series-tile__title">
+            {{ result.original_name }}
+            <span v-if="result.details?.first_air_date">({{ result.details.first_air_date.split('-')[0] }})</span>
           </div>
-          <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
-          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
+          <div v-if="result.details">{{ result.details.number_of_seasons }} {{ $t('seasons') }} /
+            {{ result.details.number_of_episodes }} {{ $t('episodes') }}
+          </div>
+          <div class="series-tile__runtime">
             Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
           </div>
           <br>
@@ -93,18 +103,25 @@
         </div>
       </div>
     </div>
+    <div v-if="inProgressData.results.length > 0 && inProgressData.page < inProgressData.total_pages"
+         class="series-tile__load-more">
+      <action-button :buttonName="isLoadingInProgress ? 'Loading...' : 'Load More'"
+                     :disabled="isLoadingInProgress"
+                     @click="inProgressShowsData(false)"></action-button>
+    </div>
   </div>
 
   <div v-show="completed">
-    <div v-if="isLoadingCompleted" class="series-tile__loading-container">
+    <div v-if="isLoadingCompleted && completedData.results.length === 0" class="series-tile__loading-container">
       <Loading/>
     </div>
-    <div v-else-if="completedData" class="series-tile__wrapper">
+    <div v-if="completedData.results.length > 0" class="series-tile__wrapper">
       <div v-if="completedTotalRuntime > 0" class="series-tile__summary">
         <strong>Total Runtime:</strong> {{ formatRuntime(completedTotalRuntime) }} ({{ completedData.total_results }}
         shows)
       </div>
       <div v-for="result in completedData.results"
+           :key="result.id"
            :class="{'series-tile':!isExpanded(result.id),'series-tile--expanded':isExpanded(result.id)}">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
@@ -113,13 +130,12 @@
           </div>
         </div>
         <div class="series-tile__info-wrapper">
-          <div class="series-tile__title">{{ result.original_name }} ({{
-              result.details?.first_air_date.split('-')[0]
-            }})
+          <div class="series-tile__title">
+            {{ result.original_name }}
+            <span v-if="result.details?.first_air_date">({{ result.details.first_air_date.split('-')[0] }})</span>
           </div>
-          <div>{{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes</div>
-          <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
-            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
+          <div v-if="result.details">{{ result.details.number_of_seasons }} {{ $t('seasons') }} /
+            {{ result.details.number_of_episodes }} {{ $t('episodes') }}
           </div>
           <br>
           <div class="series-tile__description-wrapper">
@@ -149,14 +165,20 @@
         </div>
       </div>
     </div>
+    <div v-if="completedData.results.length > 0 && completedData.page < completedData.total_pages"
+         class="series-tile__load-more">
+      <action-button :buttonName="isLoadingCompleted ? 'Loading...' : 'Load More'"
+                     :disabled="isLoadingCompleted"
+                     @click="completedShowsData(false)"></action-button>
+    </div>
   </div>
 
   <div v-show="dropped">
-    <div v-if="isLoadingDropped" class="series-tile__loading-container">
+    <div v-if="isLoadingDropped && droppedData.results.length === 0" class="series-tile__loading-container">
       <Loading/>
     </div>
-    <div v-else-if="droppedData" class="series-tile__wrapper">
-      <div v-for="result in droppedData.results" class="series-tile">
+    <div v-if="droppedData.results.length > 0" class="series-tile__wrapper">
+      <div v-for="result in droppedData.results" :key="result.id" class="series-tile">
         <div class="series-tile__image-wrapper">
           <div class="series-tile__image">
             <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
@@ -164,9 +186,9 @@
           </div>
         </div>
         <div class="series-tile__info-wrapper">
-          <div class="series-tile__title">{{ result.original_name }} ({{
-              result.details?.first_air_date.split('-')[0]
-            }})
+          <div class="series-tile__title">
+            {{ result.original_name }}
+            <span v-if="result.details?.first_air_date">({{ result.details.first_air_date.split('-')[0] }})</span>
           </div>
           <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
             Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
@@ -176,6 +198,12 @@
           <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
         </button>
       </div>
+    </div>
+    <div v-if="droppedData.results.length > 0 && droppedData.page < droppedData.total_pages"
+         class="series-tile__load-more">
+      <action-button :buttonName="isLoadingDropped ? 'Loading...' : 'Load More'"
+                     :disabled="isLoadingDropped"
+                     @click="droppedShowsData(false)"></action-button>
     </div>
   </div>
 
@@ -187,7 +215,7 @@ import Icon from '~/vue components/icons/Icon.vue'
 import ActionButton from "~/vue components/buttons/actionButton.vue";
 import Loading from "~/vue components/loading.vue";
 
-defineProps({
+const props = defineProps({
   completed: {
     type: Boolean,
     default: false
@@ -208,11 +236,15 @@ defineProps({
     default: false
   }
 })
+const {t, locale} = useI18n()
 
-const completedData = ref(null)
-const droppedData = ref(null)
-const watchListData = ref(null)
-const inProgressData = ref(null)
+console.log('Current locale:', locale.value)
+console.log('Seasons translation:', t('seasons'))
+
+const completedData = ref({results: [], total_pages: 0, total_results: 0, page: 0})
+const droppedData = ref({results: [], total_pages: 0, total_results: 0, page: 0})
+const watchListData = ref({results: [], total_pages: 0, total_results: 0, page: 0})
+const inProgressData = ref({results: [], total_pages: 0, total_results: 0, page: 0})
 const isLoadingCompleted = ref(false)
 const isLoadingDropped = ref(false)
 const isLoadingWatchList = ref(false)
@@ -232,6 +264,7 @@ const toggleExpanded = (id) => {
 const toggleCtaLabel = (id) => isExpanded(id) ? 'Show Less' : 'Show More'
 const needsToggleButton = (id) => itemsNeedingToggle.value.has(id)
 
+// Function to track if the description needs a toggle button (more than 3 lines of text)
 const setDescriptionRef = (el, id) => {
   if (el) {
     nextTick(() => {
@@ -245,17 +278,25 @@ const setDescriptionRef = (el, id) => {
   }
 }
 
-// Computed properties for list total runtimes
+// Computed property for total runtime (from backend)
 const completedTotalRuntime = computed(() => {
-  if (!completedData.value?.results) return 0
-  return completedData.value.results.reduce((total, show) => total + calculateTotalRuntime(show), 0)
+  return completedData.value?.total_runtime || 0
 })
 
 onMounted(() => {
-  completedShowsData()
-  droppedShowsData()
-  watchListShowsData()
-  inProgressShowsData()
+  // Only fetch data for the active list based on props
+  if (props.completed) {
+    completedShowsData()
+  }
+  if (props.dropped) {
+    droppedShowsData()
+  }
+  if (props.watch) {
+    watchListShowsData()
+  }
+  if (props.inProgress) {
+    inProgressShowsData()
+  }
 })
 
 
@@ -285,19 +326,19 @@ async function removeItemFromList(listType, mediaId) {
     });
     console.log(`Successfully removed from ${listType}:`, response);
 
-    // Refresh the appropriate list after successful removal
+    // Refresh the appropriate list after successful removal (reset to page 1)
     switch (listType) {
       case 'watchlist':
-        await watchListShowsData();
+        await watchListShowsData(true);
         break;
       case 'completed':
-        await completedShowsData();
+        await completedShowsData(true);
         break;
       case 'dropped':
-        await droppedShowsData();
+        await droppedShowsData(true);
         break;
       case 'inProgress':
-        await inProgressShowsData();
+        await inProgressShowsData(true);
         break;
     }
   } catch (error) {
@@ -330,7 +371,22 @@ async function addToList(mediaId, listType) {
       }
     });
     console.log(`Successfully added to ${listType}:`, response);
-    this.$emit('item-added');
+
+    // Refresh the destination list after successful add (reset to page 1)
+    switch (listType) {
+      case 'watchlist':
+        await watchListShowsData(true);
+        break;
+      case 'completed':
+        await completedShowsData(true);
+        break;
+      case 'dropped':
+        await droppedShowsData(true);
+        break;
+      case 'inProgress':
+        await inProgressShowsData(true);
+        break;
+    }
   } catch (error) {
     console.error(`Error adding to ${listType}:`, error);
   }
@@ -352,156 +408,146 @@ async function moveShowToInProgressList(mediaId) {
   await addToList(mediaId, 'inProgress');
 }
 
-/**
- * Enrich a list of TV shows with additional details from v3
- * @param {Object} listData - The list of TV shows to enrich
- * @returns {Promise<Object>} A promise that resolves with the enriched list of TV shows
- *
- * Enriches each show with details from v3, and then fetches season details for each show.
- * The returned list will contain the original list items with two additional properties:
- * - `details`: The general details of the show from v3
- * - `seasonDetails`: An array of season details for the show from v3
- */
-async function enrichWithDetails(listData) {
-  if (!listData || !listData.results) return listData;
+async function completedShowsData(reset = false) {
+  if (isLoadingCompleted.value) return;
 
-  // Fetch details from v3 for all items in parallel
-  const detailsPromises = listData.results.map(item =>
-      $fetch('/api/fetchDetails/tvSeriesDetails', {
-        method: 'GET',
-        query: {id: item.id}
-      }).catch(err => {
-        console.error(`Error fetching details for ${item.id}:`, err);
-        return null; // Return null on error to avoid breaking the entire list
-      })
-  );
+  const nextPage = reset ? 1 : (completedData.value.page || 0) + 1;
 
-  const details = await Promise.all(detailsPromises);
+  // Don't fetch if we've already loaded all pages
+  if (!reset && completedData.value.total_pages && nextPage > completedData.value.total_pages) {
+    return;
+  }
 
-  // Merge general details from v3 into original items
-  listData.results = listData.results.map((item, index) => ({
-    ...item,
-    details: details[index]
-  }));
-
-  // Now fetch season details for each show
-  const seasonDetailsPromises = listData.results.map(async (item) => {
-    if (!item.details || !item.details.number_of_seasons) {
-      return []; // No seasons to fetch
-    }
-
-    const numberOfSeasons = item.details.number_of_seasons;
-    const seasonPromises = [];
-
-    // Fetch details for each season (season numbers typically start from 1)
-    for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
-      seasonPromises.push(
-          $fetch('/api/fetchDetails/tvSeasonDetails', {
-            method: 'GET',
-            query: {
-              seriesId: item.id,
-              seasonNumber: seasonNum
-            }
-          }).catch(err => {
-            console.error(`Error fetching season ${seasonNum} for series ${item.id}:`, err);
-            return null;
-          })
-      );
-    }
-
-    return await Promise.all(seasonPromises);
-  });
-
-  const allSeasonDetails = await Promise.all(seasonDetailsPromises);
-
-  // Add season details to each show
-  listData.results = listData.results.map((item, index) => ({
-    ...item,
-    seasonDetails: allSeasonDetails[index]
-  }));
-
-  return listData;
-}
-
-async function completedShowsData() {
   isLoadingCompleted.value = true;
   try {
-    const data = await $fetch('/api/fetchLists/completedShows', {
-      method: 'GET'
-    });
-    completedData.value = await enrichWithDetails(data);
-    console.log(completedData.value, 'completed Data')
-    // Clear toggle button tracking when data changes
-    itemsNeedingToggle.value.clear()
+    const data = await $fetch(`/api/fetchLists/completedShows?page=${nextPage}`);
+
+    if (reset) {
+      completedData.value = data;
+    } else {
+      // Append new results to existing ones, preserve total_runtime from first page
+      completedData.value = {
+        ...data,
+        results: [...(completedData.value.results || []), ...(data.results || [])],
+        total_runtime: completedData.value.total_runtime || data.total_runtime
+      };
+    }
+
+    itemsNeedingToggle.value.clear();
+  } catch (error) {
+    console.error('Error fetching completed shows:', error);
   } finally {
     isLoadingCompleted.value = false;
   }
 }
 
-async function inProgressShowsData() {
+async function inProgressShowsData(reset = false) {
+  if (isLoadingInProgress.value) return;
+
+  const nextPage = reset ? 1 : (inProgressData.value.page || 0) + 1;
+
+  if (!reset && inProgressData.value.total_pages && nextPage > inProgressData.value.total_pages) {
+    return;
+  }
+
   isLoadingInProgress.value = true;
   try {
-    const data = await $fetch('/api/fetchLists/inProgressShows', {
-      method: 'GET'
-    });
-    inProgressData.value = await enrichWithDetails(data);
-    itemsNeedingToggle.value.clear()
+    const data = await $fetch(`/api/fetchLists/inProgressShows?page=${nextPage}`);
+
+    if (reset) {
+      inProgressData.value = data;
+    } else {
+      inProgressData.value = {
+        ...data,
+        results: [...(inProgressData.value.results || []), ...(data.results || [])]
+      };
+    }
+
+    itemsNeedingToggle.value.clear();
+  } catch (error) {
+    console.error('Error fetching in-progress shows:', error);
   } finally {
     isLoadingInProgress.value = false;
   }
 }
 
-async function watchListShowsData() {
+async function watchListShowsData(reset = false) {
+  if (isLoadingWatchList.value) return;
+
+  const nextPage = reset ? 1 : (watchListData.value.page || 0) + 1;
+
+  if (!reset && watchListData.value.total_pages && nextPage > watchListData.value.total_pages) {
+    return;
+  }
+
   isLoadingWatchList.value = true;
   try {
-    const data = await $fetch('/api/fetchLists/watchListShows', {
-      method: 'GET'
-    });
-    watchListData.value = await enrichWithDetails(data);
-    itemsNeedingToggle.value.clear()
+    const data = await $fetch(`/api/fetchLists/watchListShows?page=${nextPage}`);
+
+    if (reset) {
+      watchListData.value = data;
+    } else {
+      watchListData.value = {
+        ...data,
+        results: [...(watchListData.value.results || []), ...(data.results || [])]
+      };
+    }
+
+    itemsNeedingToggle.value.clear();
+  } catch (error) {
+    console.error('Error fetching watchlist shows:', error);
   } finally {
     isLoadingWatchList.value = false;
   }
 }
 
-async function droppedShowsData() {
+async function droppedShowsData(reset = false) {
+  if (isLoadingDropped.value) return;
+
+  const nextPage = reset ? 1 : (droppedData.value.page || 0) + 1;
+
+  if (!reset && droppedData.value.total_pages && nextPage > droppedData.value.total_pages) {
+    return;
+  }
+
   isLoadingDropped.value = true;
   try {
-    const data = await $fetch('/api/fetchLists/droppedShows', {
-      method: 'GET'
-    });
-    droppedData.value = await enrichWithDetails(data);
-    itemsNeedingToggle.value.clear()
+    const data = await $fetch(`/api/fetchLists/droppedShows?page=${nextPage}`);
+
+    if (reset) {
+      droppedData.value = data;
+    } else {
+      droppedData.value = {
+        ...data,
+        results: [...(droppedData.value.results || []), ...(data.results || [])]
+      };
+    }
+
+    itemsNeedingToggle.value.clear();
+  } catch (error) {
+    console.error('Error fetching dropped shows:', error);
   } finally {
     isLoadingDropped.value = false;
   }
 }
 
-/**
- * Calculate total runtime for a show by summing up all episode runtimes
- * @param {Object} show - The show object containing seasonDetails
- * @returns {number} Total runtime in minutes
- */
+//calculate total runtime for a single show
 function calculateTotalRuntime(show) {
-  if (!show || !show.seasonDetails || show.seasonDetails.length === 0) {
+  if (!show || !show.details) {
     return 0;
   }
 
-  let totalMinutes = 0;
+  const details = show.details;
+  if (details.episode_run_time && details.episode_run_time.length > 0 && details.number_of_episodes) {
+    // Use the first (most common) episode runtime or calculate average
+    const avgRuntime = details.episode_run_time.length > 1
+        ? details.episode_run_time.reduce((a: number, b: number) => a + b, 0) / details.episode_run_time.length
+        : details.episode_run_time[0];
 
-  // Iterate through all seasons
-  for (const season of show.seasonDetails) {
-    if (!season || !season.episodes) continue;
-
-    // Iterate through all episodes in the season
-    for (const episode of season.episodes) {
-      if (episode && episode.runtime) {
-        totalMinutes += episode.runtime;
-      }
-    }
+    return Math.round(avgRuntime * details.number_of_episodes);
   }
 
-  return totalMinutes;
+  return 0;
 }
 
 /**
@@ -647,7 +693,6 @@ defineExpose({
       border: 1px solid var(--grey, #ccc);
       border-radius: .5rem;
       height: 3rem;
-      width: 2rem;
 
       :hover {
         cursor: pointer;
@@ -693,6 +738,14 @@ defineExpose({
     justify-content: center;
     align-items: center;
     min-height: 20rem;
+    width: 100%;
+  }
+
+  &__load-more {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
     width: 100%;
   }
 }

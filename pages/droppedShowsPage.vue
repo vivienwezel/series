@@ -1,6 +1,6 @@
 <template>
   <div class="dropped-shows-page">
-    <h1>wtf</h1>
+    <h1>{{ $t('dropped.page.title') }}</h1>
     <div class="watchlist-page__search-section">
       <TvShowSearch @item-added="handleItemAdded"/>
     </div>

@@ -9,7 +9,8 @@ export default defineNuxtConfig({
 
     vite: {
         server: {
-            allowedHosts: ['myseries.com', 'de.myseries.com']
+            allowedHosts: ['myseries.com', 'de.myseries.com'],
+            host: true
         }
     },
 

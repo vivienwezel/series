@@ -36,10 +36,20 @@ export default defineEventHandler(async (event) => {
         body: JSON.stringify({items})
     };
 
-    return fetch(url, options)
-        .then(res => res.json())
-        .catch(err => {
-            console.error('error:' + err);
-            throw err;
-        });
+    try {
+        const res = await fetch(url, options);
+        const result = await res.json();
+        
+        if (!res.ok) {
+            throw createError({
+                statusCode: res.status,
+                message: result.status_message || 'Failed to add items to list'
+            });
+        }
+        
+        return result;
+    } catch (err) {
+        console.error('Error adding items to list:', err);
+        throw err;
+    }
 })

@@ -82,7 +82,7 @@ const logout = () => {
 }
 
 .auth-button {
-  background-color: var(--blue);
+  background-color: var(--lighter-blue);
   color: var(--grey);
   font-weight: 600;
 }

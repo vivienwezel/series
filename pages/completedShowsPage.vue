@@ -1,6 +1,6 @@
 <template>
   <div class="completed-list-page">
-    <h1>Done watching</h1>
+    <h1>{{ $t('completed.page.title') }}</h1>
     <div class="watchlist-page__search-section">
       <TvShowSearch @item-added="handleItemAdded"/>
     </div>

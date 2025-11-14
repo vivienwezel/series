@@ -1,0 +1,29 @@
+{
+  "welcome": "Willkommen",
+  "home": "Startseite",
+  "watchlist": "Watchlist",
+  "completed": "Abgeschlossen",
+  "dropped": "Abgebrochen",
+  "inProgress": "In Bearbeitung",
+  "search": "Suchen",
+  "loading": "Lädt...",
+  "error": "Ein Fehler ist aufgetreten",
+  "noResults": "Keine Ergebnisse gefunden",
+  "seasons": "Staffeln",
+  "episodes": "Episoden",
+  "completed.page.title": "Abgeschlossen",
+  "watchList.page.title": "Watchlist",
+  "inProgress.page.title": "Schaue ich gerade",
+  "dropped.page.title": "Abgebrochen",
+  "tv.search.label": "Suche nach TV Serien:",
+  "tv.search.placeholder": "Seriennamen eingeben...",
+  "no.tv.results": "Keine TV Serien gefunden für",
+  "header": {
+    "home": "Startseite",
+    "watchlist": "Watchlist",
+    "inProgress": "Im Gange",
+    "completed": "Abgeschlossen",
+    "dropped": "Nein Danke",
+    "strapi": "Strapi"
+  }
+}

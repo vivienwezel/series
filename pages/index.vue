@@ -7,7 +7,7 @@
     </div>
     <section class="home-page__strapi">
       <h3>Connect to Strapi providers:</h3>
-      <p>{{ statusMessage }}</p>
+      <p class="home-page__status-message">{{ statusMessage }}</p>
       <div v-if="hasBackendUrl" class="home-page__strapi-actions">
         <button
             v-if="isLogged"
@@ -93,31 +93,36 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 .home-page {
   padding: 1.25rem;
   max-width: 75rem;
   margin: 0 auto;
+
+  &__status-message {
+    color: var(--text-primary);
+  }
+
+  &__auth {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+  }
+
+  &__strapi {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__strapi-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
 }
 
-.home-page__auth {
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-}
-
-.home-page__strapi {
-  margin-top: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.home-page__strapi-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
 
 .logout-button {
   align-self: flex-start;

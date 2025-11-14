@@ -2,41 +2,42 @@
   <div class="series-header">
     <div class="series-header__wrapper">
       <div class="series-header__navigation">
-        <NuxtLink class="series-header__navigation-link" to="/">
+        <NuxtLink :to="localePath('/')" class="series-header__navigation-link">
           <Icon name="home"/>
-          Home
+          {{ $t('header.home') }}
         </NuxtLink>
-        <NuxtLink class="series-header__navigation-link" to="/watchListPage">
+        <NuxtLink :to="localePath('/watchListPage')" class="series-header__navigation-link">
           <Icon name="bookmark"/>
-          Watchlist
+          {{ $t('header.watchlist') }}
         </NuxtLink>
-        <NuxtLink class="series-header__navigation-link" to="/inProgressShowsPage">
+        <NuxtLink :to="localePath('/inProgressShowsPage')" class="series-header__navigation-link">
           <Icon name="play_circle"/>
-          In Progress
+          {{ $t('header.inProgress') }}
         </NuxtLink>
-        <NuxtLink class="series-header__navigation-link" to="/completedShowsPage">
+        <NuxtLink :to="localePath('/completedShowsPage')" class="series-header__navigation-link">
           <Icon name="check_circle"/>
-          Completed
+          {{ $t('header.completed') }}
         </NuxtLink>
-        <NuxtLink class="series-header__navigation-link" to="/droppedShowsPage">
+        <NuxtLink :to="localePath('/droppedShowsPage')" class="series-header__navigation-link">
           <Icon name="cancel"/>
-          Dropped
+          {{ $t('header.dropped') }}
         </NuxtLink>
-        <NuxtLink class="series-header__navigation-link" to="/strapiPage">
+        <NuxtLink :to="localePath('/strapiPage')" class="series-header__navigation-link">
           <Icon name="trash"/>
-          Strapi
+          {{ $t('header.strapi') }}
         </NuxtLink>
       </div>
-      <div class="series-header__search">
-        <searchbox></searchbox>
-      </div>
+      <!--      <div class="series-header__search">-->
+      <!--        <searchbox></searchbox>-->
+      <!--      </div>-->
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import Searchbox from "~/vue components/search/searchbox.vue";
 import Icon from "~/vue components/icons/Icon.vue";
+
+const localePath = useLocalePath()
 </script>
 
 <style lang="less">

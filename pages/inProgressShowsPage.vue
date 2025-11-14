@@ -1,6 +1,6 @@
 <template>
   <div class="inProgress-shows-page">
-    <h1>Currently watching</h1>
+    <h1>{{ $t('inProgress.page.title') }}</h1>
     <div class="watchlist-page__search-section">
       <TvShowSearch @item-added="handleItemAdded"/>
     </div>

@@ -25,7 +25,6 @@ export default defineEventHandler(async (event) => {
     // Use the appropriate list ID based on listType
     const listId = config.public.showIds[listType];
     const url = `${config.public.apiBase}/list/${listId}/items`;
-    console.log(listId, url, 'huhu')
 
     const options = {
         method: 'DELETE',
@@ -37,12 +36,26 @@ export default defineEventHandler(async (event) => {
         body: JSON.stringify({items})
     };
 
-    console.log(options, 'options')
+    console.log('Request details:', {
+        url,
+        method: 'DELETE',
+        body: {items}
+    });
 
-    return fetch(url, options)
-        .then(res => res.json())
-        .catch(err => {
-            console.error('error:' + err);
-            throw err;
-        });
+    try {
+        const res = await fetch(url, options);
+        const result = await res.json();
+        
+        if (!res.ok) {
+            throw createError({
+                statusCode: res.status,
+                message: result.status_message || 'Failed to remove items from list'
+            });
+        }
+        
+        return result;
+    } catch (err) {
+        console.error('Error removing items from list:', err);
+        throw err;
+    }
 })

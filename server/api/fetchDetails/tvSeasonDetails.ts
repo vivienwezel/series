@@ -1,4 +1,4 @@
-export default defineEventHandler(async (event) => {
+export default defineCachedEventHandler(async (event) => {
     const config = useRuntimeConfig(event)
     const query = getQuery(event)
     const seriesId = query.seriesId
@@ -11,8 +11,18 @@ export default defineEventHandler(async (event) => {
         })
     }
 
+    // Locale mapping from nuxt.config.ts i18n configuration
+    const localeMap: Record<string, string> = {
+        'de.myseries.com': 'de-DE',
+        'myseries.com': 'en-US'
+    }
+    
+    // Determine locale based on hostname
+    const host = getRequestHeader(event, 'host') || ''
+    const locale = localeMap[host] || 'en-US'
+
     // Using v3 API endpoint for season details
-    const url = `https://api.themoviedb.org/3/tv/${seriesId}/season/${seasonNumber}`;
+    const url = `https://api.themoviedb.org/3/tv/${seriesId}/season/${seasonNumber}?language=${locale}`;
     const options = {
         method: 'GET',
         headers: {
@@ -30,5 +40,12 @@ export default defineEventHandler(async (event) => {
             statusCode: 500,
             statusMessage: 'Failed to fetch season details'
         })
+    }
+}, {
+    maxAge: 60 * 60, // Cache for 1 hour (season details don't change often)
+    getKey: (event) => {
+        const query = getQuery(event)
+        const host = getRequestHeader(event, 'host') || ''
+        return `tv-season-${query.seriesId}-${query.seasonNumber}-${host}`
     }
 })
