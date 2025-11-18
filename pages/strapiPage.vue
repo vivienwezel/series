@@ -1,61 +1,3 @@
-// Path: nuxt-frontend/app.vue
-
-<script lang="ts" setup>
-// Create Article type
-type Article = {
-  id: number;
-  title: string;
-  content: string;
-  publishedAt: string;
-  cover: {
-    url: string;
-  };
-};
-
-// Strapi API URL
-const STRAPI_URL = "http://localhost:1337";
-
-// Reactive state for articles and error
-const articles = ref<{ data: Article[] } | null>(null);
-const error = ref<Error | null>(null);
-const isLoading = ref(true);
-
-// Fetch articles with JWT token
-const fetchArticles = async () => {
-  try {
-    isLoading.value = true;
-    error.value = null;
-
-    const jwt = localStorage.getItem('jwt');
-
-    articles.value = await $fetch<{ data: Article[] }>(
-        `${STRAPI_URL}/api/articles?populate=*`,
-        {
-          headers: {
-            Authorization: jwt ? `Bearer ${jwt}` : '',
-          },
-        }
-    );
-  } catch (err: any) {
-    error.value = err;
-    console.error('Error fetching articles:', err);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// Fetch on client-side only
-onMounted(() => {
-  fetchArticles();
-});
-
-// Format date
-const formatDate = (date: Date) => {
-  const options: any = {year: "numeric", month: "2-digit", day: "2-digit"};
-  return new Date(date).toLocaleDateString("en-US", options);
-};
-</script>
-
 <template>
   <main class="strapi-page">
     <h1>
@@ -104,9 +46,119 @@ const formatDate = (date: Date) => {
           </div>
         </article>
       </div>
+      <div class="strapi-page__slider">
+        <div v-for="slider in sliders?.data" :key="slider.id">
+          <div class="strapi-page__slider-info">
+            <h2>{{ slider.title }}</h2>
+          </div>
+          <div class="strapi-page__slider-images-wrapper">
+            <div v-for="image in slider.images" :key="image.id"
+            >
+              <NuxtImg
+                  :alt="slider.title"
+                  :src="`${STRAPI_URL}${image.url}`"
+                  class="strapi-page__slider-image"
+              />
+
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
   </main>
 </template>
+
+<script lang="ts" setup>
+// Create Article type
+type Article = {
+  id: number;
+  title: string;
+  content: string;
+  publishedAt: string;
+  cover: {
+    url: string;
+  };
+};
+
+type Slider = {
+  id: number;
+  images: {
+    id: number;
+    url: string;
+  }[];
+  title: string;
+};
+
+// Strapi API URL
+const STRAPI_URL = "http://localhost:1337";
+
+// Reactive state for articles and error
+const articles = ref<{ data: Article[] } | null>(null);
+const sliders = ref<{ data: Slider[] } | null>(null);
+const error = ref<Error | null>(null);
+const isLoading = ref(true);
+
+// Fetch articles with JWT token
+const fetchArticles = async () => {
+  try {
+    isLoading.value = true;
+    error.value = null;
+
+    const jwt = localStorage.getItem('jwt');
+
+    articles.value = await $fetch<{ data: Article[] }>(
+        `${STRAPI_URL}/api/articles?populate=*`,
+        {
+          headers: {
+            Authorization: jwt ? `Bearer ${jwt}` : '',
+          },
+        }
+    );
+  } catch (err: any) {
+    error.value = err;
+    console.error('Error fetching articles:', err);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const fetchSlider = async () => {
+  try {
+    isLoading.value = true;
+    error.value = null;
+
+    const jwt = localStorage.getItem('jwt');
+
+    sliders.value = await $fetch<{ data: Slider[] }>(
+        `${STRAPI_URL}/api/sliders?populate=*`,
+        {
+          headers: {
+            Authorization: jwt ? `Bearer ${jwt}` : '',
+          },
+        }
+    );
+  } catch (err: any) {
+    error.value = err;
+    console.error('Error fetching articles:', err);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Fetch on client-side only
+onMounted(() => {
+  fetchArticles();
+  fetchSlider();
+});
+
+// Format date
+const formatDate = (date: Date) => {
+  const options: any = {year: "numeric", month: "2-digit", day: "2-digit"};
+  return new Date(date).toLocaleDateString("en-US", options);
+};
+</script>
+
 
 <style lang="less">
 
@@ -160,6 +212,10 @@ h1 {
 
   &__article-info {
     padding-left: 1rem;
+
+    h3 {
+      color: var(--text-secondary);
+    }
   }
 
   &__article-wrapper {
@@ -186,5 +242,29 @@ h1 {
     width: 100%;
     height: 100%;
   }
+
+  &__slider {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    padding: 1rem;
+    flex-wrap: wrap;
+
+
+    &-image {
+      width: 10rem;
+      height: 10rem;
+    }
+
+    &-images-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      padding: 1rem;
+      width: 5rem;
+    }
+
+  }
+
 }
 </style>
