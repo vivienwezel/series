@@ -246,6 +246,7 @@ export default defineComponent({
 <style lang="less" scoped>
 .tv-show-search {
   width: 100%;
+  border-bottom: 1px solid var(--grey, #ccc);
 
   &__form {
     display: flex;

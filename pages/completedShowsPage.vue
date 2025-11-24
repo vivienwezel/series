@@ -4,12 +4,13 @@
     <div class="watchlist-page__search-section">
       <TvShowSearch @item-added="handleItemAdded"/>
     </div>
-    <series-tile ref="seriesTileRef" :completed="completed"></series-tile>
+    <tileContainer ref="seriesTileRef" :completed="completed"></tileContainer>
+    <!--    <series-tile ref="seriesTileRef" :completed="completed"></series-tile>-->
   </div>
 </template>
 
 <script setup>
-import SeriesTile from "~/vue components/tile/SeriesTile.vue";
+import tileContainer from "~/vue components/tile/container/tileContainer.vue";
 import {ref} from "vue";
 import TvShowSearch from "~/vue components/search/TvShowSearch.vue";
 

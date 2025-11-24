@@ -39,8 +39,9 @@ button {
   border: none;
   position: relative;
   overflow: hidden;
-  border-radius: 0.6em;
+  border-radius: 0.4em;
   cursor: pointer;
+  background-color: var(--beige);
 }
 
 .primary-gradient {
@@ -49,7 +50,7 @@ button {
   height: 100%;
   left: 0;
   top: 0;
-  border-radius: 0.6em;
+  border-radius: 0.4em;
   margin-top: -0.25em;
   background-image: linear-gradient(
       rgba(0, 0, 0, 0),
@@ -79,10 +80,6 @@ button {
   background-color: var(--orange);
 }
 
-.secondary-transition {
-  background-color: var(--beige);
-}
-
 button:hover .primary-transition {
   width: 14em;
   height: 14em;
@@ -90,6 +87,39 @@ button:hover .primary-transition {
 
 button:active {
   transform: scale(0.97);
+}
+
+.secondary-gradient {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  border-radius: 0.4em;
+  margin-top: -0.25em;
+  background-image: linear-gradient(
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 0.3)
+  );
+}
+
+.secondary-label {
+  position: relative;
+  top: -1px;
+}
+
+.secondary-transition {
+  background-color: var(--lighter-blue);
+}
+
+button:hover .secondary-transition {
+  width: 14em;
+  height: 14em;
+}
+
+button:has(.secondary-transition) {
+  background-color: var(--blue);
 }
 
 
