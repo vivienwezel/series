@@ -29,6 +29,9 @@
             :toggle-cta-label="toggleCtaLabel"
             :toggle-expanded="toggleExpanded"
             :watch="watch"
+            :current-page="currentPage"
+            :total-results="activeData?.total_results || 0"
+            @page-change="handlePageChange"
   >
   </ListTile>
   <CardTile v-show="!toggleView"
@@ -52,6 +55,9 @@
             :toggle-cta-label="toggleCtaLabel"
             :toggle-expanded="toggleExpanded"
             :watch="watch"
+            :current-page="currentPage"
+            :total-results="activeData?.total_results || 0"
+            @page-change="handlePageChange"
   >
   </CardTile>
 </template>
@@ -95,6 +101,12 @@ const expandedItems = ref(new Set())
 const itemsNeedingToggle = ref(new Set())
 const imageUrl = ref('https://media.themoviedb.org/t/p/w220_and_h330_face')
 
+// Pagination state
+const completedCurrentPage = ref(1)
+const droppedCurrentPage = ref(1)
+const watchListCurrentPage = ref(1)
+const inProgressCurrentPage = ref(1)
+
 const isExpanded = (id) => expandedItems.value.has(id)
 const toggleExpanded = (id) => {
   if (expandedItems.value.has(id)) {
@@ -132,6 +144,22 @@ const activeListType = computed(() => {
   if (props.completed) return 'completed'
   if (props.dropped) return 'dropped'
   return null
+})
+
+// Computed property for current page based on active list
+const currentPage = computed(() => {
+  switch (activeListType.value) {
+    case 'watchlist':
+      return watchListCurrentPage.value
+    case 'inProgress':
+      return inProgressCurrentPage.value
+    case 'completed':
+      return completedCurrentPage.value
+    case 'dropped':
+      return droppedCurrentPage.value
+    default:
+      return 1
+  }
 })
 
 // Computed property to get the active data source
@@ -321,11 +349,12 @@ async function enrichWithDetails(listData) {
   return listData;
 }
 
-async function completedShowsData() {
+async function completedShowsData(page = completedCurrentPage.value) {
   isLoading.value = true;
   try {
     const data = await $fetch('/api/fetchLists/completedShows', {
-      method: 'GET'
+      method: 'GET',
+      query: { page }
     });
     completedData.value = await enrichWithDetails(data);
     console.log(completedData.value, 'completed Data')
@@ -336,11 +365,12 @@ async function completedShowsData() {
   }
 }
 
-async function inProgressShowsData() {
+async function inProgressShowsData(page = inProgressCurrentPage.value) {
   isLoading.value = true;
   try {
     const data = await $fetch('/api/fetchLists/inProgressShows', {
-      method: 'GET'
+      method: 'GET',
+      query: { page }
     });
     inProgressData.value = await enrichWithDetails(data);
     itemsNeedingToggle.value.clear()
@@ -349,11 +379,12 @@ async function inProgressShowsData() {
   }
 }
 
-async function watchListShowsData() {
+async function watchListShowsData(page = watchListCurrentPage.value) {
   isLoading.value = true;
   try {
     const data = await $fetch('/api/fetchLists/watchListShows', {
-      method: 'GET'
+      method: 'GET',
+      query: { page }
     });
     watchListData.value = await enrichWithDetails(data);
     itemsNeedingToggle.value.clear()
@@ -362,11 +393,12 @@ async function watchListShowsData() {
   }
 }
 
-async function droppedShowsData() {
+async function droppedShowsData(page = droppedCurrentPage.value) {
   isLoading.value = true;
   try {
     const data = await $fetch('/api/fetchLists/droppedShows', {
-      method: 'GET'
+      method: 'GET',
+      query: { page }
     });
     droppedData.value = await enrichWithDetails(data);
     itemsNeedingToggle.value.clear()
@@ -424,12 +456,59 @@ function formatRuntime(minutes) {
 }
 
 
+// Page change handlers
+function handleCompletedPageChange(newPage) {
+  completedCurrentPage.value = newPage
+  completedShowsData(newPage)
+}
+
+function handleInProgressPageChange(newPage) {
+  inProgressCurrentPage.value = newPage
+  inProgressShowsData(newPage)
+}
+
+function handleWatchListPageChange(newPage) {
+  watchListCurrentPage.value = newPage
+  watchListShowsData(newPage)
+}
+
+function handleDroppedPageChange(newPage) {
+  droppedCurrentPage.value = newPage
+  droppedShowsData(newPage)
+}
+
+// Unified page change handler that delegates to the appropriate list handler
+function handlePageChange(newPage) {
+  switch (activeListType.value) {
+    case 'watchlist':
+      handleWatchListPageChange(newPage)
+      break
+    case 'inProgress':
+      handleInProgressPageChange(newPage)
+      break
+    case 'completed':
+      handleCompletedPageChange(newPage)
+      break
+    case 'dropped':
+      handleDroppedPageChange(newPage)
+      break
+  }
+}
+
 // Expose methods so parent can trigger refresh
 defineExpose({
   refreshWatchList: watchListShowsData,
   refreshCompleted: completedShowsData,
   refreshDropped: droppedShowsData,
-  refreshOngoing: inProgressShowsData
+  refreshOngoing: inProgressShowsData,
+  completedCurrentPage,
+  droppedCurrentPage,
+  watchListCurrentPage,
+  inProgressCurrentPage,
+  handleCompletedPageChange,
+  handleInProgressPageChange,
+  handleWatchListPageChange,
+  handleDroppedPageChange
 })
 
 function switchView() {

@@ -6,13 +6,14 @@
       <TvShowSearch @item-added="handleItemAdded"/>
     </div>
 
-    <series-tile ref="seriesTileRef" :watch="watch"></series-tile>
+    <tileContainer ref="seriesTileRef" :watch="watch"></tileContainer>
   </div>
 </template>
 
 <script setup>
-import SeriesTile from "~/vue components/tile/SeriesTile.vue";
+import tileContainer from "~/vue components/tile/container/tileContainer.vue";
 import TvShowSearch from "~/vue components/search/TvShowSearch.vue";
+import {ref} from "vue";
 
 const watch = ref(true)
 const seriesTileRef = ref(null)

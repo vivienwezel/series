@@ -1,6 +1,8 @@
 export default defineEventHandler((event) => {
     const config = useRuntimeConfig(event)
-    const url = `${config.public.apiBase}/list/${config.public.showIds.completed}`;
+    const query = getQuery(event)
+    const page = query.page || 1
+    const url = `${config.public.apiBase}/list/${config.public.showIds.completed}?page=${page}`;
     const options = {
         method: 'GET',
         headers: {

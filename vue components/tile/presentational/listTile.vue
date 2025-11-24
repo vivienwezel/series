@@ -2,6 +2,7 @@
 import Icon from "~/vue components/icons/Icon.vue";
 import Loading from "~/vue components/loading.vue";
 import ActionButton from "~/vue components/buttons/actionButton.vue";
+import Pagination from "~/vue components/reusable/pagination.vue";
 
 defineProps({
   completed: {
@@ -99,35 +100,51 @@ defineProps({
   moveShowToInProgressList: {
     type: Function,
     required: true
+  },
+  currentPage: {
+    type: Number,
+    default: 1
+  },
+  totalResults: {
+    type: Number,
+    default: 0
   }
 })
+
+defineEmits(['page-change'])
 </script>
 
 <template>
-  <div v-if="isLoading" class="series-tile__loading-container">
+  <div v-if="isLoading" class="list-tile__loading-container">
     <Loading/>
   </div>
-  <div v-else-if="activeData" class="series-tile__wrapper">
+  <div v-else-if="activeData" class="list-tile__wrapper">
+    <!-- Pagination at top -->
+    <Pagination 
+      :current-page="currentPage" 
+      :total-results="totalResults"
+      @page-change="$emit('page-change', $event)"
+    />
     <!-- Summary header for completed list -->
-    <div v-if="activeListType === 'completed' && completedTotalRuntime > 0" class="series-tile__summary">
+    <div v-if="activeListType === 'completed' && completedTotalRuntime > 0" class="list-tile__summary">
       <strong>Total Runtime:</strong> {{ formatRuntime(completedTotalRuntime) }} ({{ activeData.total_results }} shows)
     </div>
 
     <!-- Main tile loop -->
     <div v-for="result in activeData.results" :key="result.id"
          :class="{
-           'series-tile': !isExpanded(result.id) || activeListType !== 'completed',
-           'series-tile--expanded': isExpanded(result.id) && activeListType === 'completed'
+           'list-tile': !isExpanded(result.id) || activeListType !== 'completed',
+           'list-tile--expanded': isExpanded(result.id) && activeListType === 'completed'
          }">
-      <div class="series-tile__image-wrapper">
-        <div class="series-tile__image">
+      <div class="list-tile__image-wrapper">
+        <div class="list-tile__image">
           <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
-               class="series-tile__img">
+               class="list-tile__img">
         </div>
       </div>
 
-      <div class="series-tile__info-wrapper">
-        <div class="series-tile__title">{{ result.original_name }} ({{
+      <div class="list-tile__info-wrapper">
+        <div class="list-tile__title">{{ result.original_name }} ({{
             result.details?.first_air_date.split('-')[0]
           }})
         </div>
@@ -137,17 +154,17 @@ defineProps({
           {{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes
         </div>
 
-        <div v-if="calculateTotalRuntime(result) > 0" class="series-tile__runtime">
+        <div v-if="calculateTotalRuntime(result) > 0" class="list-tile__runtime">
           Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
         </div>
 
         <!-- Description section for all except dropped -->
         <template v-if="activeListType !== 'dropped'">
           <br>
-          <div class="series-tile__description-wrapper">
-            <div v-show="isExpanded(result.id)" class="series-tile__description-more">{{ result.overview }}</div>
+          <div class="list-tile__description-wrapper">
+            <div v-show="isExpanded(result.id)" class="list-tile__description-more">{{ result.overview }}</div>
             <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)"
-                 class="series-tile__description-less">{{ result.overview }}
+                 class="list-tile__description-less">{{ result.overview }}
             </div>
             <action-button v-if="needsToggleButton(result.id) || isExpanded(result.id)"
                            :buttonName="toggleCtaLabel(result.id)"
@@ -157,52 +174,59 @@ defineProps({
       </div>
 
       <!-- Status for all except dropped -->
-      <div v-if="activeListType !== 'dropped'" class="series-tile__status">
+      <div v-if="activeListType !== 'dropped'" class="list-tile__status">
         {{ result.details?.status }}
       </div>
 
       <!-- Action buttons section -->
       <!-- Simple remove button for watchlist and dropped -->
       <button v-if="activeListType === 'watchlist' || activeListType === 'dropped'"
-              class="series-tile__remove-button"
+              class="list-tile__remove-button"
               @click="removeItemFromList(activeListType, result.id)">
-        <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+        <Icon class="list-tile__remove-button-icon" name="trash"></Icon>
       </button>
 
       <!-- Extended action buttons for inProgress and completed -->
       <div v-else-if="activeListType === 'inProgress' || activeListType === 'completed'"
-           class="series-tile__action-buttons">
-        <div class="series-tile__remove-button-wrapper">
-          <button class="series-tile__remove-button" @click="removeItemFromList(activeListType, result.id)">
-            <Icon class="series-tile__remove-button-icon" name="trash"></Icon>
+           class="list-tile__action-buttons">
+        <div class="list-tile__remove-button-wrapper">
+          <button class="list-tile__remove-button" @click="removeItemFromList(activeListType, result.id)">
+            <Icon class="list-tile__remove-button-icon" name="trash"></Icon>
           </button>
         </div>
-        <div class="series-tile__move-buttons">
+        <div class="list-tile__move-buttons">
           <!-- InProgress: can move to completed or dropped -->
           <template v-if="activeListType === 'inProgress'">
-            <button class="series-tile__move-to-completed" @click="moveShowToCompletedList(result.id)">
+            <button class="list-tile__move-to-completed" @click="moveShowToCompletedList(result.id)">
               <Icon name="check_circle"></Icon>
             </button>
-            <button class="series-tile__move-to-dropped" @click="moveShowToDroppedList(result.id)">
+            <button class="list-tile__move-to-dropped" @click="moveShowToDroppedList(result.id)">
               <Icon name="cancel"></Icon>
             </button>
           </template>
           <!-- Completed: can move back to inProgress -->
           <template v-else-if="activeListType === 'completed'">
-            <button class="series-tile__move-to-inProgress" @click="moveShowToInProgressList(result.id)">
+            <button class="list-tile__move-to-inProgress" @click="moveShowToInProgressList(result.id)">
               <Icon name="play_circle"></Icon>
             </button>
           </template>
         </div>
       </div>
     </div>
+    
+    <!-- Pagination at bottom -->
+    <Pagination 
+      :current-page="currentPage" 
+      :total-results="totalResults"
+      @page-change="$emit('page-change', $event)"
+    />
   </div>
 </template>
 
 <style lang="less">
 @import "../../../style/variables";
 
-.series-tile {
+.list-tile {
   display: flex;
   height: 13rem;
   box-shadow: var(--tile-box-shadow);
@@ -311,7 +335,6 @@ defineProps({
       border: 1px solid var(--grey, #ccc);
       border-radius: .5rem;
       height: 3rem;
-      width: 2rem;
 
       :hover {
         cursor: pointer;
