@@ -89,6 +89,11 @@ button:active {
   transform: scale(0.97);
 }
 
+button:focus-visible {
+  outline: 2px solid var(--button-primary, #ffd700);
+  outline-offset: 2px;
+}
+
 .secondary-gradient {
   position: absolute;
   width: 100%;

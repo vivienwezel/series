@@ -1,12 +1,12 @@
 <template>
-  <div class="completed-list-page">
+  <main class="completed-list-page" role="main">
     <h1>Done watching</h1>
-    <div class="watchlist-page__search-section">
+    <section class="watchlist-page__search-section" aria-label="Search for TV shows">
       <TvShowSearch @item-added="handleItemAdded"/>
-    </div>
+    </section>
     <tileContainer ref="seriesTileRef" :completed="completed"></tileContainer>
     <!--    <series-tile ref="seriesTileRef" :completed="completed"></series-tile>-->
-  </div>
+  </main>
 </template>
 
 <script setup>

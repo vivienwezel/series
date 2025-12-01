@@ -2,6 +2,11 @@
 export default defineNuxtConfig({
     devtools: {enabled: true},
 
+    devServer: {
+        host: '0.0.0.0', // Listen on all network interfaces
+        port: 3000
+    },
+
     app: {
         head: {
             link: [

@@ -120,22 +120,36 @@ defineEmits(['page-change'])
   </div>
   <div v-else-if="activeData" class="list-tile__wrapper">
     <!-- Pagination at top -->
-    <Pagination 
-      :current-page="currentPage" 
-      :total-results="totalResults"
-      @page-change="$emit('page-change', $event)"
+    <Pagination
+        :current-page="currentPage"
+        :total-results="totalResults"
+        @page-change="$emit('page-change', $event)"
     />
     <!-- Summary header for completed list -->
-    <div v-if="activeListType === 'completed' && completedTotalRuntime > 0" class="list-tile__summary">
-      <strong>Total Runtime:</strong> {{ formatRuntime(completedTotalRuntime) }} ({{ activeData.total_results }} shows)
-    </div>
+    <section v-if="activeListType === 'completed' && completedTotalRuntime > 0"
+             id="total-runtime"
+             aria-labelledby="total-runtime-heading"
+             class="list-tile__summary"
+             role="region"
+             tabindex="0">
+      <h2 id="total-runtime-heading" class="list-tile__summary-heading">Total Runtime:</h2>
+      <p aria-live="polite">{{ formatRuntime(completedTotalRuntime) }} ({{ activeData.total_results }} completed
+        shows)</p>
+    </section>
 
     <!-- Main tile loop -->
+    <div id="content-start" tabindex="-1"></div>
     <div v-for="result in activeData.results" :key="result.id"
-         :class="{
+             role="group"
+             :aria-label="result.original_name + ' (' + (result.details?.first_air_date?.split('-')[0] || '') + '). ' + 
+                          (activeListType !== 'dropped' ? (result.details?.number_of_seasons || 0) + ' Seasons, ' + (result.details?.number_of_episodes || 0) + ' Episodes. ' : '') +
+                          (activeListType !== 'dropped' && calculateTotalRuntime(result) > 0 ? 'Total Runtime: ' + formatRuntime(calculateTotalRuntime(result)) + '. ' : '') +
+                          (activeListType !== 'dropped' && result.details?.status ? 'Status: ' + result.details.status : '')"
+             :class="{
            'list-tile': !isExpanded(result.id) || activeListType !== 'completed',
            'list-tile--expanded': isExpanded(result.id) && activeListType === 'completed'
-         }">
+         }"
+             tabindex="0">
       <div class="list-tile__image-wrapper">
         <div class="list-tile__image">
           <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
@@ -144,28 +158,32 @@ defineEmits(['page-change'])
       </div>
 
       <div class="list-tile__info-wrapper">
-        <div class="list-tile__title">{{ result.original_name }} ({{
+        <h3 :id="'tile-title-' + result.id" class="list-tile__title">{{ result.original_name }} ({{
             result.details?.first_air_date.split('-')[0]
           }})
-        </div>
+        </h3>
 
         <!-- Show seasons/episodes for all except dropped -->
-        <div v-if="activeListType !== 'dropped'">
-          {{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes
-        </div>
+        <div v-if="activeListType !== 'dropped'" :id="'tile-info-' + result.id">
+          <p>
+            {{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes
+          </p>
 
-        <div v-if="calculateTotalRuntime(result) > 0" class="list-tile__runtime">
-          Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
+          <p v-if="calculateTotalRuntime(result) > 0" class="list-tile__runtime">
+            Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
+          </p>
         </div>
 
         <!-- Description section for all except dropped -->
         <template v-if="activeListType !== 'dropped'">
           <br>
           <div class="list-tile__description-wrapper">
-            <div v-show="isExpanded(result.id)" class="list-tile__description-more">{{ result.overview }}</div>
-            <div v-show="!isExpanded(result.id)" :ref="el => setDescriptionRef(el, result.id)"
-                 class="list-tile__description-less">{{ result.overview }}
-            </div>
+            <p v-show="isExpanded(result.id)" :id="'tile-desc-' + result.id" class="list-tile__description-more">
+              {{ result.overview }}</p>
+            <p v-show="!isExpanded(result.id)" :id="!isExpanded(result.id) ? 'tile-desc-' + result.id : undefined"
+               :ref="el => setDescriptionRef(el, result.id)" class="list-tile__description-less">
+              {{ result.overview }}
+            </p>
             <action-button v-if="needsToggleButton(result.id) || isExpanded(result.id)"
                            :buttonName="toggleCtaLabel(result.id)"
                            primary @click="toggleExpanded(result.id)"></action-button>
@@ -174,57 +192,81 @@ defineEmits(['page-change'])
       </div>
 
       <!-- Status for all except dropped -->
-      <div v-if="activeListType !== 'dropped'" class="list-tile__status">
+      <div v-if="activeListType !== 'dropped'" :id="'tile-status-' + result.id" class="list-tile__status">
         {{ result.details?.status }}
       </div>
 
       <!-- Action buttons section -->
       <!-- Simple remove button for watchlist and dropped -->
       <button v-if="activeListType === 'watchlist' || activeListType === 'dropped'"
+              :aria-label="'Remove ' + result.original_name + ' from ' + activeListType"
               class="list-tile__remove-button"
               @click="removeItemFromList(activeListType, result.id)">
-        <Icon class="list-tile__remove-button-icon" name="trash"></Icon>
+        <Icon aria-hidden="true" class="list-tile__remove-button-icon" name="trash"></Icon>
       </button>
 
       <!-- Extended action buttons for inProgress and completed -->
       <div v-else-if="activeListType === 'inProgress' || activeListType === 'completed'"
-           class="list-tile__action-buttons">
+           :aria-label="'Actions for ' + result.original_name"
+           class="list-tile__action-buttons"
+           role="group">
         <div class="list-tile__remove-button-wrapper">
-          <button class="list-tile__remove-button" @click="removeItemFromList(activeListType, result.id)">
-            <Icon class="list-tile__remove-button-icon" name="trash"></Icon>
+          <button :aria-label="'Remove ' + result.original_name + ' from ' + activeListType"
+                  class="list-tile__remove-button"
+                  @click="removeItemFromList(activeListType, result.id)">
+            <Icon aria-hidden="true" class="list-tile__remove-button-icon" name="trash"></Icon>
           </button>
         </div>
         <div class="list-tile__move-buttons">
           <!-- InProgress: can move to completed or dropped -->
           <template v-if="activeListType === 'inProgress'">
-            <button class="list-tile__move-to-completed" @click="moveShowToCompletedList(result.id)">
-              <Icon name="check_circle"></Icon>
+            <button :aria-label="'Move ' + result.original_name + ' to completed list'"
+                    class="list-tile__move-to-completed"
+                    @click="moveShowToCompletedList(result.id)">
+              <Icon aria-hidden="true" name="check_circle"></Icon>
             </button>
-            <button class="list-tile__move-to-dropped" @click="moveShowToDroppedList(result.id)">
-              <Icon name="cancel"></Icon>
+            <button :aria-label="'Move ' + result.original_name + ' to dropped list'"
+                    class="list-tile__move-to-dropped"
+                    @click="moveShowToDroppedList(result.id)">
+              <Icon aria-hidden="true" name="cancel"></Icon>
             </button>
           </template>
           <!-- Completed: can move back to inProgress -->
           <template v-else-if="activeListType === 'completed'">
-            <button class="list-tile__move-to-inProgress" @click="moveShowToInProgressList(result.id)">
-              <Icon name="play_circle"></Icon>
+            <button :aria-label="'Move ' + result.original_name + ' back to in progress list'"
+                    class="list-tile__move-to-inProgress"
+                    @click="moveShowToInProgressList(result.id)">
+              <Icon aria-hidden="true" name="play_circle"></Icon>
             </button>
           </template>
         </div>
       </div>
     </div>
-    
+
     <!-- Pagination at bottom -->
-    <Pagination 
-      :current-page="currentPage" 
-      :total-results="totalResults"
-      @page-change="$emit('page-change', $event)"
+    <Pagination
+        :current-page="currentPage"
+        :total-results="totalResults"
+        @page-change="$emit('page-change', $event)"
     />
   </div>
 </template>
 
 <style lang="less">
 @import "../../../style/variables";
+
+// Screen reader only utility
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
 
 .list-tile {
   display: flex;
@@ -234,6 +276,16 @@ defineEmits(['page-change'])
   border-radius: .5rem;
   border: 1px solid var(--black);
   gap: 2rem;
+  outline-offset: 2px;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--button-primary, #ffd700);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
 
   &--expanded {
     display: flex;
@@ -243,10 +295,23 @@ defineEmits(['page-change'])
     border-radius: .5rem;
     border: 1px solid var(--border-color);
     gap: 2rem;
+    outline-offset: 2px;
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--button-primary, #ffd700);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
   }
 
   &__title {
     font-weight: bold;
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
   }
 
   &__description-wrapper button {
@@ -280,6 +345,7 @@ defineEmits(['page-change'])
   }
 
   &__summary {
+    display: flex;
     padding: 1rem 1.5rem;
     background-color: var(--beige);
     color: var(--text-secondary);
@@ -287,6 +353,25 @@ defineEmits(['page-change'])
     font-size: 1.1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 0.5rem;
+    gap: 0.5rem;
+    outline-offset: 2px;
+
+    &:focus-visible {
+      outline: 3px solid var(--button-primary, #ffd700);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    &-heading {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0;
+      padding: 0;
+    }
+
+    p {
+      margin: 0;
+      padding: 0;
+    }
 
     strong {
       font-weight: 600;
@@ -316,6 +401,12 @@ defineEmits(['page-change'])
     height: 4rem;
     border: none;
     background: none;
+    border-radius: 0.25rem;
+
+    &:focus-visible {
+      outline: 2px solid var(--button-primary, #ffd700);
+      outline-offset: 2px;
+    }
 
     &-wrapper {
       display: flex;
@@ -338,6 +429,11 @@ defineEmits(['page-change'])
 
       :hover {
         cursor: pointer;
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--button-primary, #ffd700);
+        outline-offset: 2px;
       }
     }
 

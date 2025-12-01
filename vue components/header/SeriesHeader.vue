@@ -1,29 +1,34 @@
 <template>
   <div class="series-header">
+    <a class="skip-link" href="#content-start" tabindex="0">Skip to main content</a>
     <div class="series-header__wrapper">
-      <div class="series-header__navigation">
-        <NuxtLink class="series-header__navigation-link" to="/">
-          <Icon name="home"/>
-          Home
+      <nav aria-label="Main navigation" class="series-header__navigation">
+        <NuxtLink aria-label="Navigate to Home page" class="series-header__navigation-link" tabindex="0" to="/">
+          <Icon aria-hidden="true" name="home"/>
+          <span>Home</span>
         </NuxtLink>
-        <NuxtLink class="series-header__navigation-link" to="/watchListPage">
-          <Icon name="bookmark"/>
-          Watchlist
+        <NuxtLink aria-label="Navigate to Watchlist page" class="series-header__navigation-link" tabindex="0"
+                  to="/watchListPage">
+          <Icon aria-hidden="true" name="bookmark"/>
+          <span>Watchlist</span>
         </NuxtLink>
-        <NuxtLink class="series-header__navigation-link" to="/inProgressShowsPage">
-          <Icon name="play_circle"/>
-          In Progress
+        <NuxtLink aria-label="Navigate to In Progress shows page" class="series-header__navigation-link"
+                  tabindex="0" to="/inProgressShowsPage">
+          <Icon aria-hidden="true" name="play_circle"/>
+          <span>In Progress</span>
         </NuxtLink>
-        <NuxtLink class="series-header__navigation-link" to="/completedShowsPage">
-          <Icon name="check_circle"/>
-          Completed
+        <NuxtLink aria-label="Navigate to Completed shows page" class="series-header__navigation-link"
+                  tabindex="0" to="/completedShowsPage">
+          <Icon aria-hidden="true" name="check_circle"/>
+          <span>Completed</span>
         </NuxtLink>
-        <NuxtLink class="series-header__navigation-link" to="/droppedShowsPage">
-          <Icon name="cancel"/>
-          Dropped
+        <NuxtLink aria-label="Navigate to Dropped shows page" class="series-header__navigation-link"
+                  tabindex="0" to="/droppedShowsPage">
+          <Icon aria-hidden="true" name="cancel"/>
+          <span>Dropped</span>
         </NuxtLink>
-      </div>
-      <div class="series-header__search">
+      </nav>
+      <div aria-label="TV show search" class="series-header__search" role="search">
         <searchbox></searchbox>
       </div>
     </div>
@@ -56,6 +61,8 @@ import Icon from "~/vue components/icons/Icon.vue";
   &__navigation {
     display: flex;
     gap: .5rem;
+    position: relative;
+    z-index: 1;
 
     &-link {
       display: flex;
@@ -64,10 +71,17 @@ import Icon from "~/vue components/icons/Icon.vue";
       color: var(--text-primary);
       text-decoration: none;
       border-right: 2px solid var(--text-primary);
+      outline-offset: 2px;
 
       &:hover {
         color: var(--grey);
         text-shadow: 0.5px 0 0 currentColor, -0.5px 0 0 currentColor;
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--button-primary, #ffd700);
+        border-radius: 4px;
+        color: var(--grey);
       }
 
       svg {
@@ -76,6 +90,10 @@ import Icon from "~/vue components/icons/Icon.vue";
       }
 
       &:hover svg {
+        fill: white;
+      }
+
+      &:focus-visible svg {
         fill: white;
       }
     }
@@ -95,5 +113,22 @@ import Icon from "~/vue components/icons/Icon.vue";
       width: 5rem;
     }
   }
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--button-primary, #ffd700);
+  color: var(--text-primary, #000);
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+  border-radius: 0 0 4px 0;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0;
 }
 </style>

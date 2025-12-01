@@ -1,11 +1,11 @@
 <template>
-  <div class="inProgress-shows-page">
+  <main class="inProgress-shows-page" role="main">
     <h1>Currently watching</h1>
-    <div class="watchlist-page__search-section">
+    <section class="watchlist-page__search-section" aria-label="Search for TV shows">
       <TvShowSearch @item-added="handleItemAdded"/>
-    </div>
+    </section>
     <tileContainer ref="seriesTileRef" :inProgress="inProgress"></tileContainer>
-  </div>
+  </main>
 </template>
 
 <script setup>

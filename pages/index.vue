@@ -1,11 +1,12 @@
 <template>
-  <div class="home-page">
-    <h2>List Summary:</h2>
-    <div class="home-page__auth">
-      <h3>Connect to TMDB to enable writing access for private lists:</h3>
+  <main class="home-page" role="main">
+    <div id="content-start" tabindex="-1"></div>
+    <h1>List Summary</h1>
+    <section class="home-page__auth" aria-label="TMDB Authentication">
+      <h2>Connect to TMDB to enable writing access for private lists:</h2>
       <TMDBAuthButton/>
-    </div>
-  </div>
+    </section>
+  </main>
 </template>
 
 <script setup>

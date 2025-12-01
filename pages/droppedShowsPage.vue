@@ -1,11 +1,11 @@
 <template>
-  <div class="dropped-shows-page">
+  <main class="dropped-shows-page" role="main">
     <h1>wtf</h1>
-    <div class="watchlist-page__search-section">
+    <section class="watchlist-page__search-section" aria-label="Search for TV shows">
       <TvShowSearch @item-added="handleItemAdded"/>
-    </div>
+    </section>
     <tileContainer ref="seriesTileRef" :dropped="dropped"></tileContainer>
-  </div>
+  </main>
 </template>
 
 <script setup>

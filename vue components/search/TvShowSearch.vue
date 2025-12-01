@@ -3,93 +3,84 @@
     <form class="tv-show-search__form" @submit.prevent="searchShows">
       <label for="tv-search-query">Search TV Shows:</label>
       <div class="tv-show-search__input-wrapper">
-        <input
-            id="tv-search-query"
-            v-model="searchInput"
-            autocomplete="off"
-            class="tv-show-search__input"
-            name="tv-search-query"
-            placeholder="Enter show name..."
-            type="search"
-            @input="handleInputChange"
-        >
-        <button
-            v-if="searchInput"
-            aria-label="Clear search"
-            class="tv-show-search__clear-button"
-            type="button"
-            @click="clearSearch"
-        >
-          <img alt="Clear" height="20" src="/icons/close.svg" width="20">
+        <input id="tv-search-query"
+               v-model="searchInput"
+               autocomplete="off"
+               class="tv-show-search__input"
+               name="tv-search-query"
+               placeholder="Enter show name..."
+               type="search"
+               @input="handleInputChange">
+        <button v-if="searchInput"
+                aria-label="Clear search"
+                class="tv-show-search__clear-button"
+                type="button"
+                @click="clearSearch">
         </button>
       </div>
     </form>
 
-    <div v-if="searchInput !== '' && searchResults" class="tv-show-search__results">
+    <div v-if="searchInput !== '' && searchResults" class="tv-show-search__results" role="region" aria-live="polite">
       <div v-if="searchResults.results && searchResults.results.length > 0">
         <h2>Search Results ({{ searchResults.results.length }})</h2>
-        <div class="tv-show-search__result-item-wrapper">
-          <div
-              v-for="result in paginatedResults"
-              :key="result.id"
-              class="tv-show-search__result-item"
-          >
-            <img
-                v-if="result.poster_path"
-                :alt="'Poster of ' + result.name"
-                :src="imageUrl + result.poster_path"
-                class="tv-show-search__result-image"
-            >
-            <div
-                v-else
-                class="tv-show-search__result-image-placeholder"
-            >
-              No Image
+        <ul class="tv-show-search__result-item-wrapper" role="list">
+          <li v-for="result in paginatedResults"
+               :key="result.id"
+               class="tv-show-search__result-item">
+            <img v-if="result.poster_path"
+                 :alt="'Poster of ' + result.name"
+                 :src="imageUrl + result.poster_path"
+                 class="tv-show-search__result-image">
+            <div v-else
+                 class="tv-show-search__result-image-placeholder"> No Image
             </div>
             <div class="tv-show-search__result-info">
-              <p class="tv-show-search__result-title">
+              <h3 class="tv-show-search__result-title">
                 {{ result.name }}
-              </p>
+              </h3>
               <p v-if="result.first_air_date" class="tv-show-search__result-date">
                 {{ new Date(result.first_air_date).getFullYear() }}
               </p>
             </div>
-            <div class="tv-show-search__buttons">
-              <button class="tv-show-search__add-to-watchlist" type="button" @click="addToList(result.id, 'watchlist')">
-                <Icon name="bookmark"></Icon>
+            <div class="tv-show-search__buttons" role="group" :aria-label="'Actions for ' + result.name">
+              <button :aria-label="'Add ' + result.name + ' to watchlist'" class="tv-show-search__add-to-watchlist" type="button"
+                      @click="addToList(result.id, 'watchlist')">
+                <Icon aria-hidden="true" name="bookmark"></Icon>
               </button>
-              <button class="tv-show-search__add-to-ongoing-list" type="button"
+              <button :aria-label="'Add ' + result.name + ' to in progress list'" class="tv-show-search__add-to-ongoing-list" type="button"
                       @click="addToList(result.id, 'inProgress')">
-                <Icon name="play_circle"></Icon>
+                <Icon aria-hidden="true" name="play_circle"></Icon>
               </button>
-              <button class="tv-show-search__add-to-completed-list" type="button"
+              <button :aria-label="'Add ' + result.name + ' to completed list'" class="tv-show-search__add-to-completed-list" type="button"
                       @click="addToList(result.id, 'completed')">
-                <Icon name="check_circle"></Icon>
+                <Icon aria-hidden="true" name="check_circle"></Icon>
               </button>
-              <button class="tv-show-search__add-to-dropped-list" type="button"
+              <button :aria-label="'Add ' + result.name + ' to dropped list'" class="tv-show-search__add-to-dropped-list" type="button"
                       @click="addToList(result.id, 'dropped')">
-                <Icon name="cancel"></Icon>
+                <Icon aria-hidden="true" name="cancel"></Icon>
               </button>
             </div>
-          </div>
-        </div>
+          </li>
+        </ul>
 
-        <div v-if="totalPages > 1" class="tv-show-search__pagination">
+        <div v-if="totalPages > 1" class="tv-show-search__pagination" role="navigation" aria-label="Search results pagination">
           <button
               :disabled="currentPage === 1"
               class="tv-show-search__pagination-button"
               type="button"
+              aria-label="Go to previous page"
               @click="previousPage"
           >
             Previous
           </button>
-          <span class="tv-show-search__pagination-info">
+          <span class="tv-show-search__pagination-info" aria-current="page" aria-live="polite">
             Page {{ currentPage }} of {{ totalPages }}
           </span>
           <button
               :disabled="currentPage === totalPages"
               class="tv-show-search__pagination-button"
               type="button"
+              aria-label="Go to next page"
               @click="nextPage"
           >
             Next
@@ -97,7 +88,7 @@
         </div>
       </div>
 
-      <div v-else-if="searchResults.results && searchResults.results.length === 0">
+      <div v-else-if="searchResults.results && searchResults.results.length === 0" role="status" aria-live="polite">
         <p>No TV shows found for "{{ searchInput }}"</p>
       </div>
     </div>
@@ -398,6 +389,7 @@ export default defineComponent({
     border: 1px solid var(--border-color, #e0e0e0);
     border-radius: 0.5rem;
     transition: box-shadow 0.2s;
+    list-style: none;
 
     &:hover {
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -407,6 +399,9 @@ export default defineComponent({
       display: flex;
       flex-wrap: wrap;
       column-gap: 1rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
     }
   }
 
@@ -443,6 +438,7 @@ export default defineComponent({
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
+    padding: 0;
     color: var(--text-secondary, #333);
   }
 

@@ -1,13 +1,13 @@
 <template>
-  <div class="watchlist-page">
+  <main class="watchlist-page" role="main">
     <h1>Plan To Watch</h1>
 
-    <div class="watchlist-page__search-section">
+    <section class="watchlist-page__search-section" aria-label="Search for TV shows">
       <TvShowSearch @item-added="handleItemAdded"/>
-    </div>
+    </section>
 
     <tileContainer ref="seriesTileRef" :watch="watch"></tileContainer>
-  </div>
+  </main>
 </template>
 
 <script setup>
