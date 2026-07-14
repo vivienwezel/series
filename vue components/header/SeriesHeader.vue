@@ -1,43 +1,33 @@
 <template>
-  <div class="series-header">
-    <a class="skip-link" href="#content-start" tabindex="0">Skip to main content</a>
-    <div class="series-header__wrapper">
-      <nav aria-label="Main navigation" class="series-header__navigation">
-        <NuxtLink aria-label="Navigate to Home page" class="series-header__navigation-link" tabindex="0" to="/">
-          <Icon aria-hidden="true" name="home"/>
-          <span>Home</span>
-        </NuxtLink>
-        <NuxtLink aria-label="Navigate to Watchlist page" class="series-header__navigation-link" tabindex="0"
-                  to="/watchListPage">
-          <Icon aria-hidden="true" name="bookmark"/>
-          <span>Watchlist</span>
-        </NuxtLink>
-        <NuxtLink aria-label="Navigate to In Progress shows page" class="series-header__navigation-link"
-                  tabindex="0" to="/inProgressShowsPage">
-          <Icon aria-hidden="true" name="play_circle"/>
-          <span>In Progress</span>
-        </NuxtLink>
-        <NuxtLink aria-label="Navigate to Completed shows page" class="series-header__navigation-link"
-                  tabindex="0" to="/completedShowsPage">
-          <Icon aria-hidden="true" name="check_circle"/>
-          <span>Completed</span>
-        </NuxtLink>
-        <NuxtLink aria-label="Navigate to Dropped shows page" class="series-header__navigation-link"
-                  tabindex="0" to="/droppedShowsPage">
-          <Icon aria-hidden="true" name="cancel"/>
-          <span>Dropped</span>
-        </NuxtLink>
-      </nav>
-      <div aria-label="TV show search" class="series-header__search" role="search">
-        <searchbox></searchbox>
+  <div class='series-header'>
+    <div class='series-header__wrapper'>
+      <div v-if='activeSectionComponent'>
+        <component :is='activeSectionComponent'/>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
-import Searchbox from "~/vue components/search/searchbox.vue";
-import Icon from "~/vue components/icons/Icon.vue";
+
+<script lang='ts' setup>
+import SeriesMenu from '~/vue components/navigation/seriesMenu.vue';
+import AnimeMenu from '~/vue components/navigation/animeMenu.vue';
+import BooksMenu from '~/vue components/navigation/booksMenu.vue';
+
+const route = useRoute();
+
+const activeSectionComponent = computed(() => {
+  if (route.path.startsWith('/series')) {
+    return SeriesMenu;
+  }
+  if (route.path.startsWith('/anime')) {
+    return AnimeMenu;
+  }
+  if (route.path.startsWith('/books')) {
+    return BooksMenu;
+  }
+  return null;
+});
 </script>
 
 <style lang="less">
@@ -55,6 +45,7 @@ import Icon from "~/vue components/icons/Icon.vue";
     margin: 0 auto;
     gap: 1rem;
     height: 5rem;
+    width: 100%;
     background: var(--header-background);
   }
 
@@ -96,21 +87,6 @@ import Icon from "~/vue components/icons/Icon.vue";
       &:focus-visible svg {
         fill: white;
       }
-    }
-  }
-
-  &__search {
-    &-form {
-      display: flex;
-    }
-
-    &-input {
-      width: 30rem;
-      height: 2rem;
-    }
-
-    &-submit-button {
-      width: 5rem;
     }
   }
 }

@@ -1,114 +1,47 @@
 <script lang="ts" setup>
 import Icon from "~/vue components/icons/Icon.vue";
 import Loading from "~/vue components/loading.vue";
-import ActionButton from "~/vue components/buttons/actionButton.vue";
 import Pagination from "~/vue components/reusable/pagination.vue";
 
-defineProps({
-  completed: {
-    type: Boolean,
-    default: false
-  },
-  dropped: {
-    type: Boolean,
-    default: false
-  },
-  watch: {
-    type: Boolean,
-    default: false
-  },
-  inProgress: {
-    type: Boolean,
-    default: false
-  },
-  completedData: {
-    type: Object,
-    default: () => null
-  },
-  droppedData: {
-    type: Object,
-    default: () => null
-  },
-  watchListData: {
-    type: Object,
-    default: () => null
-  },
-  inProgressData: {
-    type: Object,
-    default: () => null
-  },
-  isLoading: {
-    type: Boolean,
-    default: false
-  },
-  activeListType: {
-    type: String,
-    default: null
-  },
-  activeData: {
-    type: Object,
-    default: () => null
-  },
-  imageUrl: {
-    type: String,
-    required: true
-  },
-  isExpanded: {
-    type: Function,
-    required: true
-  },
-  toggleExpanded: {
-    type: Function,
-    required: true
-  },
-  toggleCtaLabel: {
-    type: Function,
-    required: true
-  },
-  needsToggleButton: {
-    type: Function,
-    required: true
-  },
-  setDescriptionRef: {
-    type: Function,
-    required: true
-  },
-  calculateTotalRuntime: {
-    type: Function,
-    required: true
-  },
-  formatRuntime: {
-    type: Function,
-    required: true
-  },
-  completedTotalRuntime: {
-    type: Number,
-    default: 0
-  },
-  removeItemFromList: {
-    type: Function,
-    required: true
-  },
-  moveShowToCompletedList: {
-    type: Function,
-    required: true
-  },
-  moveShowToDroppedList: {
-    type: Function,
-    required: true
-  },
-  moveShowToInProgressList: {
-    type: Function,
-    required: true
-  },
-  currentPage: {
-    type: Number,
-    default: 1
-  },
-  totalResults: {
-    type: Number,
-    default: 0
-  }
+interface Props {
+  imageUrl: string;
+  calculateTotalRuntime: Function;
+  formatRuntime: Function;
+  removeItemFromList: Function;
+  moveShowToCompletedList: Function;
+  moveShowToDroppedList: Function;
+  moveShowToInProgressList: Function;
+  completed?: boolean;
+  dropped?: boolean;
+  watchList?: boolean;
+  inProgress?: boolean;
+  completedData?: object | null;
+  droppedData?: object | null;
+  watchListData?: object | null;
+  inProgressData?: object | null;
+  isLoading?: boolean;
+  activeListType?: string | null;
+  activeData?: object | null;
+  completedTotalRuntime?: number;
+  currentPage?: number;
+  totalResults?: number;
+}
+
+withDefaults(defineProps<Props>(), {
+  completed: false,
+  dropped: false,
+  watchList: false,
+  inProgress: false,
+  completedData: null,
+  droppedData: null,
+  watchListData: null,
+  inProgressData: null,
+  isLoading: false,
+  activeListType: null,
+  activeData: null,
+  completedTotalRuntime: 0,
+  currentPage: 1,
+  totalResults: 0,
 })
 
 defineEmits(['page-change'])
@@ -120,36 +53,35 @@ defineEmits(['page-change'])
   </div>
   <div v-else-if="activeData" class="list-tile__wrapper">
     <!-- Pagination at top -->
-    <Pagination
-        :current-page="currentPage"
-        :total-results="totalResults"
-        @page-change="$emit('page-change', $event)"
-    />
+    <div class="list-tile__sorting">
+      <Pagination
+          :current-page="currentPage"
+          :total-results="totalResults"
+          @page-change="$emit('page-change', $event)"
+      />
+    </div>
     <!-- Summary header for completed list -->
-    <section v-if="activeListType === 'completed' && completedTotalRuntime > 0"
+    <section v-if="activeListType === 'completed' && (completedTotalRuntime && completedTotalRuntime > 0)"
              id="total-runtime"
              aria-labelledby="total-runtime-heading"
              class="list-tile__summary"
              role="region"
              tabindex="0">
       <h2 id="total-runtime-heading" class="list-tile__summary-heading">Total Runtime:</h2>
-      <p aria-live="polite">{{ formatRuntime(completedTotalRuntime) }} ({{ activeData.total_results }} completed
+      <p aria-live="polite">{{ formatRuntime(completedTotalRuntime) }} ({{ activeData?.total_results }} completed
         shows)</p>
     </section>
 
     <!-- Main tile loop -->
     <div id="content-start" tabindex="-1"></div>
-    <div v-for="result in activeData.results" :key="result.id"
-             role="group"
-             :aria-label="result.original_name + ' (' + (result.details?.first_air_date?.split('-')[0] || '') + '). ' + 
+    <div v-for="result in activeData?.results" :key="result.id"
+         role="group"
+         :aria-label="result.original_name + ' (' + (result.details?.first_air_date?.split('-')[0] || '') + '). ' +
                           (activeListType !== 'dropped' ? (result.details?.number_of_seasons || 0) + ' Seasons, ' + (result.details?.number_of_episodes || 0) + ' Episodes. ' : '') +
                           (activeListType !== 'dropped' && calculateTotalRuntime(result) > 0 ? 'Total Runtime: ' + formatRuntime(calculateTotalRuntime(result)) + '. ' : '') +
                           (activeListType !== 'dropped' && result.details?.status ? 'Status: ' + result.details.status : '')"
-             :class="{
-           'list-tile': !isExpanded(result.id) || activeListType !== 'completed',
-           'list-tile--expanded': isExpanded(result.id) && activeListType === 'completed'
-         }"
-             tabindex="0">
+         class="list-tile"
+         tabindex="0">
       <div class="list-tile__image-wrapper">
         <div class="list-tile__image">
           <img :alt="'Bild der Serie ' + result.original_name" :src="imageUrl + result.poster_path"
@@ -158,13 +90,13 @@ defineEmits(['page-change'])
       </div>
 
       <div class="list-tile__info-wrapper">
-        <h3 :id="'tile-title-' + result.id" class="list-tile__title">{{ result.original_name }} ({{
+        <h3 :id="'tile-title-' + result.id" class="list-tile__title">{{ result.name }} ({{
             result.details?.first_air_date.split('-')[0]
           }})
         </h3>
 
         <!-- Show seasons/episodes for all except dropped -->
-        <div v-if="activeListType !== 'dropped'" :id="'tile-info-' + result.id">
+        <div v-if="activeListType !== 'dropped'" :id="'tile-info-' + result.id" class="list-tile__info">
           <p>
             {{ result.details?.number_of_seasons }} Seasons / {{ result.details.number_of_episodes }} Episodes
           </p>
@@ -173,32 +105,19 @@ defineEmits(['page-change'])
             Total Runtime: {{ formatRuntime(calculateTotalRuntime(result)) }}
           </p>
         </div>
-
-        <!-- Description section for all except dropped -->
-        <template v-if="activeListType !== 'dropped'">
-          <br>
-          <div class="list-tile__description-wrapper">
-            <p v-show="isExpanded(result.id)" :id="'tile-desc-' + result.id" class="list-tile__description-more">
-              {{ result.overview }}</p>
-            <p v-show="!isExpanded(result.id)" :id="!isExpanded(result.id) ? 'tile-desc-' + result.id : undefined"
-               :ref="el => setDescriptionRef(el, result.id)" class="list-tile__description-less">
-              {{ result.overview }}
-            </p>
-            <action-button v-if="needsToggleButton(result.id) || isExpanded(result.id)"
-                           :buttonName="toggleCtaLabel(result.id)"
-                           primary @click="toggleExpanded(result.id)"></action-button>
-          </div>
-        </template>
       </div>
 
       <!-- Status for all except dropped -->
       <div v-if="activeListType !== 'dropped'" :id="'tile-status-' + result.id" class="list-tile__status">
         {{ result.details?.status }}
+        <div class="list-tile__genre">
+          {{ result.details.genres.map(genre => genre.name).join(', ') }}
+        </div>
       </div>
 
       <!-- Action buttons section -->
       <!-- Simple remove button for watchlist and dropped -->
-      <button v-if="activeListType === 'watchlist' || activeListType === 'dropped'"
+      <button v-if="activeListType === 'watchList' || activeListType === 'dropped'"
               :aria-label="'Remove ' + result.original_name + ' from ' + activeListType"
               class="list-tile__remove-button"
               @click="removeItemFromList(activeListType, result.id)">
@@ -207,11 +126,11 @@ defineEmits(['page-change'])
 
       <!-- Extended action buttons for inProgress and completed -->
       <div v-else-if="activeListType === 'inProgress' || activeListType === 'completed'"
-           :aria-label="'Actions for ' + result.original_name"
+           :aria-label="'Actions for ' + result.name"
            class="list-tile__action-buttons"
            role="group">
         <div class="list-tile__remove-button-wrapper">
-          <button :aria-label="'Remove ' + result.original_name + ' from ' + activeListType"
+          <button :aria-label="'Remove ' + result.name + ' from ' + activeListType"
                   class="list-tile__remove-button"
                   @click="removeItemFromList(activeListType, result.id)">
             <Icon aria-hidden="true" class="list-tile__remove-button-icon" name="trash"></Icon>
@@ -220,12 +139,12 @@ defineEmits(['page-change'])
         <div class="list-tile__move-buttons">
           <!-- InProgress: can move to completed or dropped -->
           <template v-if="activeListType === 'inProgress'">
-            <button :aria-label="'Move ' + result.original_name + ' to completed list'"
+            <button :aria-label="'Move ' + result.name + ' to completed list'"
                     class="list-tile__move-to-completed"
                     @click="moveShowToCompletedList(result.id)">
               <Icon aria-hidden="true" name="check_circle"></Icon>
             </button>
-            <button :aria-label="'Move ' + result.original_name + ' to dropped list'"
+            <button :aria-label="'Move ' + result.name + ' to dropped list'"
                     class="list-tile__move-to-dropped"
                     @click="moveShowToDroppedList(result.id)">
               <Icon aria-hidden="true" name="cancel"></Icon>
@@ -233,7 +152,7 @@ defineEmits(['page-change'])
           </template>
           <!-- Completed: can move back to inProgress -->
           <template v-else-if="activeListType === 'completed'">
-            <button :aria-label="'Move ' + result.original_name + ' back to in progress list'"
+            <button :aria-label="'Move ' + result.name + ' back to in progress list'"
                     class="list-tile__move-to-inProgress"
                     @click="moveShowToInProgressList(result.id)">
               <Icon aria-hidden="true" name="play_circle"></Icon>
@@ -244,11 +163,13 @@ defineEmits(['page-change'])
     </div>
 
     <!-- Pagination at bottom -->
-    <Pagination
-        :current-page="currentPage"
-        :total-results="totalResults"
-        @page-change="$emit('page-change', $event)"
-    />
+    <div class="list-tile__sorting">
+      <Pagination
+          :current-page="currentPage"
+          :total-results="totalResults"
+          @page-change="$emit('page-change', $event)"
+      />
+    </div>
   </div>
 </template>
 
@@ -307,11 +228,25 @@ defineEmits(['page-change'])
     }
   }
 
+  &__sorting {
+    display: flex;
+    justify-content: space-between;
+  }
+
   &__title {
     font-weight: bold;
     margin: 0;
     padding: 0;
     font-size: inherit;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--black);
+    padding-bottom: .5rem;
+    margin: .5rem 0;
   }
 
   &__description-wrapper button {
@@ -380,7 +315,7 @@ defineEmits(['page-change'])
   }
 
   &__info-wrapper {
-    flex-basis: 80%;
+    flex-basis: 75%;
     padding: 1rem;
   }
 
@@ -449,7 +384,6 @@ defineEmits(['page-change'])
     padding: 0.25rem;
     cursor: pointer;
 
-
     &:hover {
       opacity: 1;
     }
@@ -466,7 +400,9 @@ defineEmits(['page-change'])
 
   &__status {
     display: flex;
-    flex-basis: 10%;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-basis: 15%;
     padding: 1rem;
     font-weight: bold;
   }

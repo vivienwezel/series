@@ -1,115 +1,48 @@
 <script lang="ts" setup>
 import {ref} from 'vue';
 import Loading from "~/vue components/loading.vue";
-import ActionButton from "~/vue components/buttons/actionButton.vue";
 import Modal from "~/vue components/reusable/modal.vue";
 import Pagination from "~/vue components/reusable/pagination.vue";
 
-defineProps({
-  completed: {
-    type: Boolean,
-    default: false
-  },
-  dropped: {
-    type: Boolean,
-    default: false
-  },
-  watch: {
-    type: Boolean,
-    default: false
-  },
-  inProgress: {
-    type: Boolean,
-    default: false
-  },
-  completedData: {
-    type: Object,
-    default: () => null
-  },
-  droppedData: {
-    type: Object,
-    default: () => null
-  },
-  watchListData: {
-    type: Object,
-    default: () => null
-  },
-  inProgressData: {
-    type: Object,
-    default: () => null
-  },
-  isLoading: {
-    type: Boolean,
-    default: false
-  },
-  activeListType: {
-    type: String,
-    default: null
-  },
-  activeData: {
-    type: Object,
-    default: () => null
-  },
-  imageUrl: {
-    type: String,
-    required: true
-  },
-  isExpanded: {
-    type: Function,
-    required: true
-  },
-  toggleExpanded: {
-    type: Function,
-    required: true
-  },
-  toggleCtaLabel: {
-    type: Function,
-    required: true
-  },
-  needsToggleButton: {
-    type: Function,
-    required: true
-  },
-  setDescriptionRef: {
-    type: Function,
-    required: true
-  },
-  calculateTotalRuntime: {
-    type: Function,
-    required: true
-  },
-  formatRuntime: {
-    type: Function,
-    required: true
-  },
-  completedTotalRuntime: {
-    type: Number,
-    default: 0
-  },
-  removeItemFromList: {
-    type: Function,
-    required: true
-  },
-  moveShowToCompletedList: {
-    type: Function,
-    required: true
-  },
-  moveShowToDroppedList: {
-    type: Function,
-    required: true
-  },
-  moveShowToInProgressList: {
-    type: Function,
-    required: true
-  },
-  currentPage: {
-    type: Number,
-    default: 1
-  },
-  totalResults: {
-    type: Number,
-    default: 0
-  }
+interface Props {
+  imageUrl: string;
+  calculateTotalRuntime: Function;
+  formatRuntime: Function;
+  removeItemFromList: Function;
+  moveShowToCompletedList: Function;
+  moveShowToDroppedList: Function;
+  moveShowToInProgressList: Function;
+  completed?: boolean;
+  dropped?: boolean;
+  watchList?: boolean;
+  inProgress?: boolean;
+  completedData?: object | null;
+  droppedData?: object | null;
+  watchListData?: object | null;
+  inProgressData?: object | null;
+  isLoading?: boolean;
+  activeListType?: string | null;
+  activeData?: object | null;
+  completedTotalRuntime?: number;
+  currentPage?: number;
+  totalResults?: number;
+}
+
+withDefaults(defineProps<Props>(), {
+  completed: false,
+  dropped: false,
+  watchList: false,
+  inProgress: false,
+  completedData: null,
+  droppedData: null,
+  watchListData: null,
+  inProgressData: null,
+  isLoading: false,
+  activeListType: null,
+  activeData: null,
+  completedTotalRuntime: 0,
+  currentPage: 1,
+  totalResults: 0,
 })
 
 defineEmits(['page-change'])
@@ -134,14 +67,14 @@ const closeModal = () => {
 
 function flipCard(cardId: number) {
   const isCurrentlyFlipped = flippedCards.value.has(cardId);
-  
+
   if (isCurrentlyFlipped) {
     flippedCards.value.delete(cardId);
     liveRegionMessage.value = 'Card closed, showing poster';
   } else {
     flippedCards.value.add(cardId);
     liveRegionMessage.value = 'Card expanded, showing details';
-    
+
     // Move focus to close button after flip animation
     setTimeout(() => {
       const closeButton = closeButtonRefs.value.get(cardId);
@@ -170,20 +103,23 @@ function setCloseButtonRef(el: any, cardId: number) {
       {{ liveRegionMessage }}
     </div>
     <!-- Pagination at top -->
-    <Pagination
-        :current-page="currentPage"
-        :total-results="totalResults"
-        @page-change="$emit('page-change', $event)"
-    />
+    <div class="card-tile__sorting">
+      <Pagination
+          :current-page="currentPage"
+          :total-results="totalResults"
+          @page-change="$emit('page-change', $event)"
+      />
+    </div>
 
-    <section v-if="activeListType === 'completed' && completedTotalRuntime > 0"
+
+    <section v-if="activeListType === 'completed' && (completedTotalRuntime && completedTotalRuntime > 0)"
              id="total-runtime"
              aria-labelledby="total-runtime-heading"
              class="card-tile__summary"
              role="region"
              tabindex="0">
       <h2 id="total-runtime-heading" class="card-tile__summary-heading">Total Runtime:</h2>
-      <p aria-live="polite">{{ formatRuntime(completedTotalRuntime) }} ({{ activeData.total_results }} completed
+      <p aria-live="polite">{{ formatRuntime(completedTotalRuntime) }} ({{ activeData?.total_results }} completed
         shows)</p>
     </section>
     <div v-else-if="isLoading" class="series-tile__loading-container">
@@ -196,23 +132,23 @@ function setCloseButtonRef(el: any, cardId: number) {
              :class="{'card--flipped': flippedCards.has(result.id)}"
              class="card">
           <div class="card__inner">
-            <div :aria-label="'Show details for ' + result.name" 
+            <div :aria-label="'Show details for ' + result.name"
                  :aria-expanded="flippedCards.has(result.id)"
-                 class="card__face" 
-                 role="button" 
+                 class="card__face"
+                 role="button"
                  tabindex="0"
-                 @click="flipCard(result.id)" 
+                 @click="flipCard(result.id)"
                  @keydown.enter="flipCard(result.id)"
                  @keydown.space.prevent="flipCard(result.id)">
               <div class="front-card">
                 <img :alt="'Poster of ' + result.name" :src="imageUrl + result.poster_path">
               </div>
             </div>
-            <div class="card__face card__face--back" 
+            <div class="card__face card__face--back"
                  @click.self="flipCard(result.id)">
               <div class="back-card" @click.self="flipCard(result.id)">
                 <div class="back-card__content">
-                  <button class="back-card__close-button" 
+                  <button class="back-card__close-button"
                           :ref="el => setCloseButtonRef(el, result.id)"
                           :tabindex="flippedCards.has(result.id) ? 0 : -1"
                           :aria-describedby="'back-card-info-' + result.id"
@@ -228,14 +164,17 @@ function setCloseButtonRef(el: any, cardId: number) {
                       {{ result.details.number_of_episodes }}
                       Episodes
                     </div>
-                    <div class="back-card__genres">{{ result.details?.genres.map((genre: any) => genre.name).join(', ') }}</div>
+                    <div class="back-card__genres">{{
+                        result.details?.genres.map((genre: any) => genre.name).join(', ')
+                      }}
+                    </div>
                     <div class="back-card__status">
                       {{ result.details?.status }}
                     </div>
                   </div>
 
                   <div class="back-card__description-button">
-                    <button type="button" 
+                    <button type="button"
                             class="description-button"
                             :tabindex="flippedCards.has(result.id) ? 0 : -1"
                             @click.stop="openModal(result)"
@@ -252,13 +191,15 @@ function setCloseButtonRef(el: any, cardId: number) {
     </div>
 
     <!-- Pagination at bottom -->
-    <Pagination
-        :current-page="currentPage"
-        :total-results="totalResults"
-        @page-change="$emit('page-change', $event)"
-    />
+    <div class="card-tile__sorting">
+      <Pagination
+          :current-page="currentPage"
+          :total-results="totalResults"
+          @page-change="$emit('page-change', $event)"
+      />
+    </div>
 
-    <Modal v-if="selectedResult" 
+    <Modal v-if="selectedResult"
            :isOpen="activeModalCardId !== null"
            @modal-close="closeModal">
       <template #header>
@@ -286,6 +227,11 @@ function setCloseButtonRef(el: any, cardId: number) {
 }
 
 .card-tile {
+
+  &__sorting {
+    display: flex;
+    justify-content: space-between;
+  }
 
   &__summary {
     display: flex;

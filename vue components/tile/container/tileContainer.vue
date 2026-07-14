@@ -1,15 +1,16 @@
 <template>
   <div class="tile-container__sort">
-    <ActionButton button-name="Switch View" class="tile-container__switch-view-button" primary
-                  @click="switchView"></ActionButton>
-    <select id="sort" class="tile-container__sort-select" name="sort">
-      <option value="1">Sort</option>
-      <option value="2">Sort by Name</option>
-      <option value="3">Sort by Date</option>
-    </select>
+    <Icon name="grid" class="tile-container__switch-view-button"
+          @click="switchToGridMode()"></Icon>
+    <Icon name="tv" class="tile-container__switch-view-button"
+          @click="switchToListMode()"></Icon>
+    <Icon name="list" class="tile-container__switch-view-button"
+          @click="switchToShortMode()"></Icon>
+    <Select :options="availableStatus" v-model="selectedStatus" id="select-status" name="status"></Select>
+    <Select :options="availableGenres" v-model="selectedGenre" id="select-genre" name="genre"></Select>
   </div>
-  <ListTile v-show="toggleView"
-            :active-data="activeData"
+  <ListTile v-if="viewMode === 'list'"
+            :active-data="filteredData"
             :active-list-type="activeListType"
             :calculate-total-runtime="calculateTotalRuntime"
             :completed="completed"
@@ -18,24 +19,41 @@
             :format-runtime="formatRuntime"
             :image-url="imageUrl"
             :in-progress="inProgress"
-            :is-expanded="isExpanded"
+            :watch-list="watchList"
             :is-loading="isLoading"
             :move-show-to-completed-list="moveShowToCompletedList"
             :move-show-to-dropped-list="moveShowToDroppedList"
             :move-show-to-in-progress-list="moveShowToInProgressList"
-            :needs-toggle-button="needsToggleButton"
             :remove-item-from-list="removeItemFromList"
-            :set-description-ref="setDescriptionRef"
-            :toggle-cta-label="toggleCtaLabel"
-            :toggle-expanded="toggleExpanded"
-            :watch="watch"
             :current-page="currentPage"
             :total-results="activeData?.total_results || 0"
             @page-change="handlePageChange"
   >
   </ListTile>
-  <CardTile v-show="!toggleView"
-            :active-data="activeData"
+  <ShortTile v-if="viewMode === 'short'"
+             :active-data="filteredData"
+             :active-list-type="activeListType"
+             :calculate-total-runtime="calculateTotalRuntime"
+             :completed="completed"
+             :completed-total-runtime="completedTotalRuntime"
+             :dropped="dropped"
+             :format-runtime="formatRuntime"
+             :image-url="imageUrl"
+             :in-progress="inProgress"
+             :watch-list="watchList"
+             :is-loading="isLoading"
+             :move-show-to-completed-list="moveShowToCompletedList"
+             :move-show-to-dropped-list="moveShowToDroppedList"
+             :move-show-to-in-progress-list="moveShowToInProgressList"
+             :remove-item-from-list="removeItemFromList"
+             :current-page="currentPage"
+             :total-results="activeData?.total_results || 0"
+             @page-change="handlePageChange"
+  >
+
+  </ShortTile>
+  <CardTile v-if="viewMode === 'card'"
+            :active-data="filteredData"
             :active-list-type="activeListType"
             :calculate-total-runtime="calculateTotalRuntime"
             :completed="completed"
@@ -44,17 +62,12 @@
             :format-runtime="formatRuntime"
             :image-url="imageUrl"
             :in-progress="inProgress"
-            :is-expanded="isExpanded"
+            :watch-list="watchList"
             :is-loading="isLoading"
             :move-show-to-completed-list="moveShowToCompletedList"
             :move-show-to-dropped-list="moveShowToDroppedList"
             :move-show-to-in-progress-list="moveShowToInProgressList"
-            :needs-toggle-button="needsToggleButton"
             :remove-item-from-list="removeItemFromList"
-            :set-description-ref="setDescriptionRef"
-            :toggle-cta-label="toggleCtaLabel"
-            :toggle-expanded="toggleExpanded"
-            :watch="watch"
             :current-page="currentPage"
             :total-results="activeData?.total_results || 0"
             @page-change="handlePageChange"
@@ -65,10 +78,44 @@
 <script lang="ts" setup>
 import CardTile from '../presentational/cardTile.vue'
 import ListTile from '../presentational/listTile.vue'
-import ActionButton from '~/vue components/buttons/actionButton.vue'
-import {computed, nextTick, onMounted, ref} from 'vue'
+import ShortTile from '../presentational/shortTile.vue'
+import Select from '~/vue components/reusable/select.vue'
+import {computed, onMounted, ref} from 'vue'
+import {useShowCache} from '~/composables/useShowCache.js'
+import Icon from '~/vue components/icons/Icon.vue'
 
-const toggleView = ref(true)
+interface Genre {
+  id: number;
+  name: string;
+}
+
+interface ShowDetails {
+  genres?: Genre[];
+  status?: string;
+  number_of_seasons?: number;
+}
+
+interface Episode {
+  runtime?: number;
+}
+
+interface Season {
+  episodes?: Episode[];
+}
+
+interface Show {
+  id: number;
+  details?: ShowDetails;
+  seasonDetails?: Season[];
+}
+
+interface ListData {
+  results: Show[];
+  total_results?: number;
+}
+
+const emit = defineEmits(['item-added'])
+const viewMode = ref<'list' | 'card' | 'short'>('list')
 
 const props = defineProps({
   completed: {
@@ -76,7 +123,7 @@ const props = defineProps({
     default: false
   },
 
-  watch: {
+  watchList: {
     type: Boolean,
     default: false
   },
@@ -92,14 +139,15 @@ const props = defineProps({
   }
 })
 
-const completedData = ref(null)
-const droppedData = ref(null)
-const watchListData = ref(null)
-const inProgressData = ref(null)
+const completedData = ref<ListData | null>(null)
+const droppedData = ref<ListData | null>(null)
+const watchListData = ref<ListData | null>(null)
+const inProgressData = ref<ListData | null>(null)
 const isLoading = ref(false)
-const expandedItems = ref(new Set())
-const itemsNeedingToggle = ref(new Set())
 const imageUrl = ref('https://media.themoviedb.org/t/p/w220_and_h330_face')
+const selectedGenre = ref('')
+const selectedStatus = ref('')
+const {getShowDetails, getSeasonDetails, invalidateShow} = useShowCache()
 
 // Pagination state
 const completedCurrentPage = ref(1)
@@ -107,39 +155,73 @@ const droppedCurrentPage = ref(1)
 const watchListCurrentPage = ref(1)
 const inProgressCurrentPage = ref(1)
 
-const isExpanded = (id) => expandedItems.value.has(id)
-const toggleExpanded = (id) => {
-  if (expandedItems.value.has(id)) {
-    expandedItems.value.delete(id)
-  } else {
-    expandedItems.value.add(id)
-  }
-}
-const toggleCtaLabel = (id) => isExpanded(id) ? 'Show Less' : 'Show More'
-const needsToggleButton = (id) => itemsNeedingToggle.value.has(id)
 
-const setDescriptionRef = (el, id) => {
-  if (el) {
-    nextTick(() => {
-      // Check if the content overflows (scrollHeight > clientHeight means text is clamped)
-      if (el.scrollHeight > el.clientHeight) {
-        itemsNeedingToggle.value.add(id)
-      } else {
-        itemsNeedingToggle.value.delete(id)
-      }
+function switchToListMode() {
+  viewMode.value = 'list'
+}
+
+function switchToGridMode() {
+  viewMode.value = 'card'
+}
+
+function switchToShortMode() {
+  viewMode.value = 'short'
+}
+
+const availableGenres = computed(() => {
+  if (!activeData.value?.results) return [{value: '', label: 'All Genres'}]
+
+  const genreSet = new Set()
+  activeData.value.results.forEach(show => {
+    if (show.details?.genres) {
+      show.details.genres.forEach(genre => {
+        genreSet.add(genre.name)
+      })
+    }
+  })
+
+  const genres = Array.from(genreSet).sort()
+  return [{value: '', label: 'All Genres'}, ...genres.map(genre => ({value: genre, label: genre}))]
+})
+
+const availableStatus = computed(() => {
+  if (!activeData.value?.results) return [{value: '', label: 'All Status'}]
+
+  const statusSet = new Set()
+  activeData.value.results.forEach(show => {
+    if (show.details?.status) {
+      statusSet.add(show.details.status)
+    }
+  })
+
+  const statuses = Array.from(statusSet).sort()
+  return [{value: '', label: 'All Status'}, ...statuses.map(status => ({value: status, label: status}))]
+})
+
+const filteredData = computed<ListData | null>(() => {
+  if (!activeData.value) return activeData.value
+
+  const filtered = {
+    ...activeData.value,
+    results: activeData.value.results.filter(show => {
+      const genreMatch = !selectedGenre.value || (show.details?.genres?.some(genre => genre.name === selectedGenre.value))
+      const statusMatch = !selectedStatus.value || show.details?.status === selectedStatus.value
+      return genreMatch && statusMatch
     })
   }
-}
+
+  return filtered
+})
 
 // Computed properties for list total runtimes
-const completedTotalRuntime = computed(() => {
+const completedTotalRuntime = computed<number>(() => {
   if (!completedData.value?.results) return 0
   return completedData.value.results.reduce((total, show) => total + calculateTotalRuntime(show), 0)
 })
 
 // Computed property to determine which list is active
-const activeListType = computed(() => {
-  if (props.watch) return 'watchlist'
+const activeListType = computed<string | null>(() => {
+  if (props.watchList) return 'watchList'
   if (props.inProgress) return 'inProgress'
   if (props.completed) return 'completed'
   if (props.dropped) return 'dropped'
@@ -147,9 +229,9 @@ const activeListType = computed(() => {
 })
 
 // Computed property for current page based on active list
-const currentPage = computed(() => {
+const currentPage = computed<number>(() => {
   switch (activeListType.value) {
-    case 'watchlist':
+    case 'watchList':
       return watchListCurrentPage.value
     case 'inProgress':
       return inProgressCurrentPage.value
@@ -163,9 +245,9 @@ const currentPage = computed(() => {
 })
 
 // Computed property to get the active data source
-const activeData = computed(() => {
+const activeData = computed<ListData | null>(() => {
   switch (activeListType.value) {
-    case 'watchlist':
+    case 'watchList':
       return watchListData.value
     case 'inProgress':
       return inProgressData.value
@@ -178,14 +260,7 @@ const activeData = computed(() => {
   }
 })
 
-onMounted(() => {
-  completedShowsData()
-  droppedShowsData()
-  watchListShowsData()
-  inProgressShowsData()
-})
-
-async function removeItemFromList(listType, mediaId) {
+async function removeItemFromList(listType: string, mediaId: string): Promise<void> {
   const accessToken = localStorage.getItem('tmdb_access_token');
 
   if (!accessToken) {
@@ -211,9 +286,10 @@ async function removeItemFromList(listType, mediaId) {
     });
     console.log(`Successfully removed from ${listType}:`, response);
 
-    // Refresh the appropriate list after successful removal
+    invalidateShow(mediaId);
+
     switch (listType) {
-      case 'watchlist':
+      case 'watchList':
         await watchListShowsData();
         break;
       case 'completed':
@@ -231,7 +307,7 @@ async function removeItemFromList(listType, mediaId) {
   }
 }
 
-async function addToList(mediaId, listType) {
+async function addToList(listType: string, mediaId: string): Promise<void> {
   const accessToken = localStorage.getItem('tmdb_access_token');
 
   if (!accessToken) {
@@ -256,26 +332,37 @@ async function addToList(mediaId, listType) {
       }
     });
     console.log(`Successfully added to ${listType}:`, response);
-    this.$emit('item-added');
+    invalidateShow(mediaId);
+    emit('item-added');
   } catch (error) {
     console.error(`Error adding to ${listType}:`, error);
   }
 }
 
-async function moveShowToCompletedList(mediaId) {
-  await removeItemFromList('inProgress', mediaId);
-  await addToList(mediaId, 'completed');
+async function moveShowToCompletedList(mediaId: string): Promise<void> {
+  if (activeListType.value === 'inProgress') {
+    await removeItemFromList('inProgress', mediaId);
+  }
+  if (activeListType.value === 'watchList') {
+    await removeItemFromList('watchList', mediaId);
+  }
+  await addToList('completed', mediaId);
 
 }
 
-async function moveShowToDroppedList(mediaId) {
+async function moveShowToDroppedList(mediaId: string): Promise<void> {
   await removeItemFromList('inProgress', mediaId);
-  await addToList(mediaId, 'dropped');
+  await addToList('dropped', mediaId);
 }
 
-async function moveShowToInProgressList(mediaId) {
+async function moveShowToInProgressList(mediaId: string): Promise<void> {
+  if (activeListType.value === 'dropped') {
+    await removeItemFromList('dropped', mediaId);
+  }
+  if (activeListType.value === 'watchList') {
+    await removeItemFromList('watchList', mediaId);
+  }
   await removeItemFromList('completed', mediaId);
-  await addToList(mediaId, 'inProgress');
 }
 
 /**
@@ -288,47 +375,34 @@ async function moveShowToInProgressList(mediaId) {
  * - `details`: The general details of the show from v3
  * - `seasonDetails`: An array of season details for the show from v3
  */
-async function enrichWithDetails(listData) {
+async function enrichWithDetails(listData: ListData): Promise<ListData> {
   if (!listData || !listData.results) return listData;
 
-  // Fetch details from v3 for all items in parallel
   const detailsPromises = listData.results.map(item =>
-      $fetch('/api/fetchDetails/tvSeriesDetails', {
-        method: 'GET',
-        query: {id: item.id}
-      }).catch(err => {
+      getShowDetails(item.id).catch(err => {
         console.error(`Error fetching details for ${item.id}:`, err);
-        return null; // Return null on error to avoid breaking the entire list
+        return null;
       })
   );
 
   const details = await Promise.all(detailsPromises);
 
-  // Merge general details from v3 into original items
   listData.results = listData.results.map((item, index) => ({
     ...item,
     details: details[index]
   }));
 
-  // Now fetch season details for each show
   const seasonDetailsPromises = listData.results.map(async (item) => {
     if (!item.details || !item.details.number_of_seasons) {
-      return []; // No seasons to fetch
+      return [];
     }
 
     const numberOfSeasons = item.details.number_of_seasons;
     const seasonPromises = [];
 
-    // Fetch details for each season (season numbers typically start from 1)
     for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
       seasonPromises.push(
-          $fetch('/api/fetchDetails/tvSeasonDetails', {
-            method: 'GET',
-            query: {
-              seriesId: item.id,
-              seasonNumber: seasonNum
-            }
-          }).catch(err => {
+          getSeasonDetails(item.id, seasonNum).catch(err => {
             console.error(`Error fetching season ${seasonNum} for series ${item.id}:`, err);
             return null;
           })
@@ -340,7 +414,6 @@ async function enrichWithDetails(listData) {
 
   const allSeasonDetails = await Promise.all(seasonDetailsPromises);
 
-  // Add season details to each show
   listData.results = listData.results.map((item, index) => ({
     ...item,
     seasonDetails: allSeasonDetails[index]
@@ -349,59 +422,57 @@ async function enrichWithDetails(listData) {
   return listData;
 }
 
-async function completedShowsData(page = completedCurrentPage.value) {
+async function completedShowsData(page = completedCurrentPage.value): Promise<void> {
   isLoading.value = true;
   try {
     const data = await $fetch('/api/fetchLists/completedShows', {
       method: 'GET',
-      query: { page }
+      query: {page}
     });
     completedData.value = await enrichWithDetails(data);
-    console.log(completedData.value, 'completed Data')
     // Clear toggle button tracking when data changes
-    itemsNeedingToggle.value.clear()
   } finally {
     isLoading.value = false;
   }
 }
 
-async function inProgressShowsData(page = inProgressCurrentPage.value) {
+async function inProgressShowsData(page = inProgressCurrentPage.value): Promise<void> {
   isLoading.value = true;
   try {
     const data = await $fetch('/api/fetchLists/inProgressShows', {
       method: 'GET',
-      query: { page }
+      query: {page}
     });
     inProgressData.value = await enrichWithDetails(data);
-    itemsNeedingToggle.value.clear()
+    console.log(inProgressData.value, 'in progress data')
+
   } finally {
     isLoading.value = false;
   }
 }
 
-async function watchListShowsData(page = watchListCurrentPage.value) {
+async function watchListShowsData(page = watchListCurrentPage.value): Promise<void> {
   isLoading.value = true;
   try {
     const data = await $fetch('/api/fetchLists/watchListShows', {
       method: 'GET',
-      query: { page }
+      query: {page}
     });
     watchListData.value = await enrichWithDetails(data);
-    itemsNeedingToggle.value.clear()
+    console.log(watchListData.value, 'watchlist data')
   } finally {
     isLoading.value = false;
   }
 }
 
-async function droppedShowsData(page = droppedCurrentPage.value) {
+async function droppedShowsData(page = droppedCurrentPage.value): Promise<void> {
   isLoading.value = true;
   try {
     const data = await $fetch('/api/fetchLists/droppedShows', {
       method: 'GET',
-      query: { page }
+      query: {page}
     });
     droppedData.value = await enrichWithDetails(data);
-    itemsNeedingToggle.value.clear()
   } finally {
     isLoading.value = false;
   }
@@ -412,7 +483,7 @@ async function droppedShowsData(page = droppedCurrentPage.value) {
  * @param {Object} show - The show object containing seasonDetails
  * @returns {number} Total runtime in minutes
  */
-function calculateTotalRuntime(show) {
+function calculateTotalRuntime(show: Show): number {
   if (!show || !show.seasonDetails || show.seasonDetails.length === 0) {
     return 0;
   }
@@ -439,7 +510,7 @@ function calculateTotalRuntime(show) {
  * @param {number} minutes - Total runtime in minutes
  * @returns {string} Formatted string like "2d 5h 30m", "2h 30m" or "45m"
  */
-function formatRuntime(minutes) {
+function formatRuntime(minutes: number): string {
   if (minutes === 0) return '0m';
 
   const totalHours = Math.floor(minutes / 60);
@@ -457,30 +528,30 @@ function formatRuntime(minutes) {
 
 
 // Page change handlers
-function handleCompletedPageChange(newPage) {
+function handleCompletedPageChange(newPage: number): void {
   completedCurrentPage.value = newPage
   completedShowsData(newPage)
 }
 
-function handleInProgressPageChange(newPage) {
+function handleInProgressPageChange(newPage: number): void {
   inProgressCurrentPage.value = newPage
   inProgressShowsData(newPage)
 }
 
-function handleWatchListPageChange(newPage) {
+function handleWatchListPageChange(newPage: number): void {
   watchListCurrentPage.value = newPage
   watchListShowsData(newPage)
 }
 
-function handleDroppedPageChange(newPage) {
+function handleDroppedPageChange(newPage: number): void {
   droppedCurrentPage.value = newPage
   droppedShowsData(newPage)
 }
 
 // Unified page change handler that delegates to the appropriate list handler
-function handlePageChange(newPage) {
+function handlePageChange(newPage: number): void {
   switch (activeListType.value) {
-    case 'watchlist':
+    case 'watchList':
       handleWatchListPageChange(newPage)
       break
     case 'inProgress':
@@ -494,6 +565,18 @@ function handlePageChange(newPage) {
       break
   }
 }
+
+onMounted(() => {
+  if (props.completed) {
+    completedShowsData()
+  } else if (props.dropped) {
+    droppedShowsData()
+  } else if (props.watchList) {
+    watchListShowsData()
+  } else if (props.inProgress) {
+    inProgressShowsData()
+  }
+})
 
 // Expose methods so parent can trigger refresh
 defineExpose({
@@ -511,25 +594,42 @@ defineExpose({
   handleDroppedPageChange
 })
 
-function switchView() {
-  toggleView.value = !toggleView.value
-}
-
 </script>
 
 <style lang="less" scoped>
 .tile-container__sort {
   display: flex;
   justify-content: end;
+  align-items: center;
   margin-bottom: 1rem;
   margin-top: 1rem;
-  padding: .3rem;
+  padding: 0.25rem;
+  gap: 0.75rem;
 }
 
 .tile-container__sort-select {
-  margin-left: 1rem;
-  padding-left: .3rem;
-  border-radius: .4rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.375rem;
+  background-color: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-moderate);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast),
+  background-color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.tile-container__switch-view-button {
+  font-size: 0.8125rem;
 }
 </style>
 

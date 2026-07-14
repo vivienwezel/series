@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     // Extract listType and validate
     const {listType, items} = body;
 
-    if (!listType || !config.public.showIds[listType]) {
+    if (!listType || !config.public.showIds[listType as keyof typeof config.public.showIds]) {
         throw createError({
             statusCode: 400,
             message: `Invalid list type: ${listType}`
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Use the appropriate list ID based on listType
-    const listId = config.public.showIds[listType];
+    const listId = config.public.showIds[listType as keyof typeof config.public.showIds];
     const url = `${config.public.apiBase}/list/${listId}/items`;
 
     const options = {

@@ -1,9 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+    css: ['~/style/variables.less'],
     devtools: {enabled: true},
 
     devServer: {
-        host: '0.0.0.0', // Listen on all network interfaces
+        host: 'localhost', // Listen on localhost
         port: 3000
     },
 
